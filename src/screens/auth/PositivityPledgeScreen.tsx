@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, Text, SafeAreaView, ScrollView } from 'react-native';
+import { StyleSheet, View, Text, ScrollView } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackNavigationProp } from '@react-navigation/native-stack';
 import { AuthStackParamList } from '../../types/navigation';
 import { colors, spacing, typography } from '../../theme';
@@ -100,7 +101,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'flex-start',
     padding: spacing.lg,
-    backgroundColor: 'rgba(255, 255, 255, 0.05)',
+    backgroundColor: colors.background.secondary,
   },
   ruleTextContainer: {
     marginLeft: spacing.md,

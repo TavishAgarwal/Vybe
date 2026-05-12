@@ -86,11 +86,7 @@
     ],
     "extra": {
       "EXPO_PUBLIC_API_URL": "https://api.vybe.app",
-      "router": {},
-      "eas": {
-        "projectId": "REPLACE_WITH_YOUR_EAS_PROJECT_ID"
-      }
-    },
-    "owner": "REPLACE_WITH_YOUR_EXPO_OWNER"
+      "router": {}
+    }
   }
 }

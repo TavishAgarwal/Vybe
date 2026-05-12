@@ -3,13 +3,13 @@ import {
   StyleSheet,
   View,
   Text,
-  SafeAreaView,
   TextInput,
   TouchableOpacity,
   KeyboardAvoidingView,
   Platform,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Hash } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../theme';
 import { GradientButton } from '../../components/ui';
@@ -50,7 +50,7 @@ export const CaptionScreen: React.FC<Props> = ({ route, navigation }) => {
           <ArrowLeft color={colors.text.primary} size={24} />
         </TouchableOpacity>
         <Text style={styles.headerTitle}>New Vybe</Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       <KeyboardAvoidingView
@@ -128,6 +128,9 @@ const styles = StyleSheet.create({
     ...typography.weights.bold,
     fontSize: typography.sizes.lg,
     color: colors.text.primary,
+  },
+  headerSpacer: {
+    width: 24,
   },
   content: {
     flex: 1,

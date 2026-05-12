@@ -9,7 +9,7 @@ interface FeedItemProps {
   entry: Entry;
   isActive: boolean;
   isPaused: boolean;
-  onLike: (entryId: string) => void;
+  onLike: (entryId: string) => Promise<void> | void;
   onComment: (entryId: string) => void;
   onShare: (entryId: string) => void;
   hasLiked?: boolean;
@@ -35,10 +35,16 @@ export const FeedItem: React.FC<FeedItemProps> = ({
       {/* Video Overlay Info */}
       <View style={styles.overlay}>
         <View style={styles.infoContainer}>
-          <Text style={styles.username}>@{entry.user?.username}</Text>
-          <Text style={styles.caption}>{entry.caption}</Text>
+          <Text style={styles.username} numberOfLines={1}>
+            @{entry.user?.username ?? entry.user?.handle ?? 'unknown'}
+          </Text>
+          <Text style={styles.caption} numberOfLines={3}>
+            {entry.caption}
+          </Text>
           {entry.musicTrack && (
-            <Text style={styles.musicTrack}>🎵 {entry.musicTrack.title}</Text>
+            <Text style={styles.musicTrack} numberOfLines={1}>
+              🎵 {entry.musicTrack.title}
+            </Text>
           )}
           {entry.status === 'under_review' && (
             <View style={styles.moderationBadge}>
@@ -80,7 +86,7 @@ const styles = StyleSheet.create({
     ...typography.weights.bold,
     fontSize: typography.sizes.md,
     marginBottom: spacing.xs,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowColor: colors.background.default,
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
@@ -89,7 +95,7 @@ const styles = StyleSheet.create({
     ...typography.weights.regular,
     fontSize: typography.sizes.sm,
     marginBottom: spacing.sm,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowColor: colors.background.default,
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
@@ -97,12 +103,12 @@ const styles = StyleSheet.create({
     color: colors.text.inverse,
     ...typography.weights.medium,
     fontSize: typography.sizes.xs,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowColor: colors.background.default,
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },
   moderationBadge: {
-    backgroundColor: 'rgba(0,0,0,0.6)',
+    backgroundColor: colors.background.default,
     alignSelf: 'flex-start',
     paddingHorizontal: spacing.sm,
     paddingVertical: 2,

@@ -13,53 +13,78 @@ import { useAuthStore } from '../stores/authStore';
 import { View, ActivityIndicator, StyleSheet } from 'react-native';
 import { colors } from '../theme';
 import { supabase } from '../api/supabase';
+import { DbUser } from '../types/database';
 
 const Stack = createNativeStackNavigator<RootStackParamList>();
 
+const mapProfileToUser = (profile: DbUser) => ({
+  id: profile.id,
+  handle: profile.username,
+  username: profile.username,
+  displayName: profile.full_name || profile.username,
+  avatarUrl: profile.avatar_url || '',
+  bio: profile.bio || '',
+  categories: [],
+  vybeScore: profile.vybe_score || 0,
+  vybeCoins: 0,
+  strikeCount: 0,
+  pledgeSigned: true,
+  createdAt: profile.created_at,
+  followersCount: 0,
+  followingCount: 0,
+});
+
 export const RootNavigator = () => {
-  const { user, isLoading } = useAuthStore();
+  const user = useAuthStore(state => state.user);
+  const isLoading = useAuthStore(state => state.isLoading);
   const [isInitializing, setIsInitializing] = React.useState(true);
 
   useEffect(() => {
     // Check initial session
-    supabase.auth.getSession().then(({ data: { session } }) => {
-      if (!session) {
-        useAuthStore.setState({ user: null, isLoading: false });
-        setIsInitializing(false);
-      } else {
-        // We have a session, fetch profile
-        supabase
+    let isMounted = true;
+
+    const initializeSession = async () => {
+      try {
+        const {
+          data: { session },
+        } = await supabase.auth.getSession();
+        if (!isMounted) {
+          return;
+        }
+        if (!session) {
+          useAuthStore.setState({ user: null, isLoading: false });
+          setIsInitializing(false);
+          return;
+        }
+
+        const response = await supabase
           .from('users')
           .select('*')
           .eq('id', session.user.id)
-          .single()
-          .then(({ data: profile }) => {
-            if (profile) {
-              useAuthStore.setState({
-                user: {
-                  id: profile.id,
-                  handle: profile.username,
-                  displayName: profile.full_name || profile.username,
-                  avatarUrl: profile.avatar_url,
-                  bio: profile.bio || '',
-                  categories: [],
-                  vybeScore: profile.vybe_score || 0,
-                  vybeCoins: 0,
-                  strikeCount: 0,
-                  pledgeSigned: true,
-                  createdAt: profile.created_at,
-                  followersCount: 0,
-                  followingCount: 0,
-                },
-                isLoading: false,
-              });
-            } else {
-              useAuthStore.setState({ user: null, isLoading: false });
-            }
-            setIsInitializing(false);
+          .single();
+        if (!isMounted) {
+          return;
+        }
+        const profile = response.data as DbUser | null;
+        if (profile) {
+          useAuthStore.setState({
+            user: mapProfileToUser(profile),
+            isLoading: false,
           });
+        } else {
+          useAuthStore.setState({ user: null, isLoading: false });
+        }
+        setIsInitializing(false);
+      } catch {
+        if (!isMounted) {
+          return;
+        }
+        useAuthStore.setState({ user: null, isLoading: false });
+        setIsInitializing(false);
       }
-    });
+    };
+
+    initializeSession().catch(() => undefined);
 
     // Listen for auth changes
     const {
@@ -70,7 +95,10 @@ export const RootNavigator = () => {
       }
     });
 
-    return () => subscription.unsubscribe();
+    return () => {
+      isMounted = false;
+      subscription.unsubscribe();
+    };
   }, []);
 
   if (isInitializing || isLoading) {

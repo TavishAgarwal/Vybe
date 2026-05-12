@@ -4,9 +4,9 @@ import {
   View,
   Text,
   FlatList,
-  SafeAreaView,
   ActivityIndicator,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { useLeaderboard } from '../../hooks';
 import { LeaderboardCard } from '../../components';
 import { colors, spacing, typography } from '../../theme';

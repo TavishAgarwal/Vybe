@@ -1,4 +1,4 @@
-import { useState } from 'react';
+import { useEffect, useRef, useState } from 'react';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useAuthStore } from '../stores/authStore';
 import apiClient from '../api/client';
@@ -13,6 +13,12 @@ interface UploadOptions {
   filterId?: string;
   durationSeconds?: number;
   abortSignal?: AbortSignal;
+}
+
+interface UploadInitResponse {
+  uploadUrl?: unknown;
+  videoUrl?: unknown;
+  thumbnailUrl?: unknown;
 }
 
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
@@ -144,11 +150,36 @@ export const useUpload = () => {
   const [uploadProgress, setUploadProgress] = useState(0);
   const [error, setError] = useState<Error | null>(null);
   const { user } = useAuthStore();
+  const isMountedRef = useRef(true);
+
+  useEffect(() => {
+    return () => {
+      isMountedRef.current = false;
+    };
+  }, []);
+
+  const safelySetUploading = (nextIsUploading: boolean) => {
+    if (isMountedRef.current) {
+      setIsUploading(nextIsUploading);
+    }
+  };
+
+  const safelySetProgress = (nextProgress: number) => {
+    if (isMountedRef.current) {
+      setUploadProgress(nextProgress);
+    }
+  };
+
+  const safelySetError = (nextError: Error | null) => {
+    if (isMountedRef.current) {
+      setError(nextError);
+    }
+  };
 
   const uploadVideo = async (options: UploadOptions): Promise<Entry | null> => {
-    setIsUploading(true);
-    setUploadProgress(0);
-    setError(null);
+    safelySetUploading(true);
+    safelySetProgress(0);
+    safelySetError(null);
 
     try {
       if (!user) {
@@ -156,11 +187,14 @@ export const useUpload = () => {
       }
       const { size, mimeType } = await validateVideo(options);
 
-      const initResponse = await apiClient.post('/upload-init', {
-        challengeId: options.challengeId,
-        mimeType,
-        size,
-      });
+      const initResponse = await apiClient.post<UploadInitResponse>(
+        '/upload-init',
+        {
+          challengeId: options.challengeId,
+          mimeType,
+          size,
+        },
+      );
 
       const uploadUrl = initResponse.data?.uploadUrl;
       const videoUrl = initResponse.data?.videoUrl;
@@ -174,11 +208,11 @@ export const useUpload = () => {
         options.videoUri,
         size,
         mimeType,
-        progress => setUploadProgress(progress * 0.8),
+        progress => safelySetProgress(progress * 0.8),
         options.abortSignal,
       );
 
-      const entryResponse = await apiClient.post('/entry-create', {
+      const entryResponse = await apiClient.post<Entry>('/entry-create', {
         challengeId: options.challengeId,
         videoUrl,
         thumbnailUrl,
@@ -187,10 +221,10 @@ export const useUpload = () => {
         filterId: options.filterId,
       });
 
-      setUploadProgress(0.9);
-      const entry = entryResponse.data as Entry;
-      setUploadProgress(1);
-      setIsUploading(false);
+      safelySetProgress(0.9);
+      const entry = entryResponse.data;
+      safelySetProgress(1);
+      safelySetUploading(false);
       await FileSystem.deleteAsync(options.videoUri, { idempotent: true });
 
       return entry;
@@ -200,8 +234,8 @@ export const useUpload = () => {
       await FileSystem.deleteAsync(options.videoUri, {
         idempotent: true,
       }).catch(() => undefined);
-      setError(uploadError);
-      setIsUploading(false);
+      safelySetError(uploadError);
+      safelySetUploading(false);
       return null;
     }
   };

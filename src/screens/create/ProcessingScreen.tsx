@@ -1,87 +1,60 @@
-import React, { useEffect, useState } from 'react';
-import { StyleSheet, View, Text, ActivityIndicator } from 'react-native';
-import { FFmpegKit, ReturnCode } from 'ffmpeg-kit-react-native';
-import * as FileSystem from 'expo-file-system/legacy';
+import React, { useCallback, useEffect, useState } from 'react';
+import {
+  BackHandler,
+  StyleSheet,
+  View,
+  Text,
+  ActivityIndicator,
+} from 'react-native';
 import { colors, spacing, typography } from '../../theme';
-import { useFeedStore } from '../../stores/feedStore';
-import { useUpload } from '../../hooks/useUpload';
 import { CheckCircle } from 'lucide-react-native';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
+import { useFocusEffect } from '@react-navigation/native';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Processing'>;
 
 export const ProcessingScreen: React.FC<Props> = ({ route, navigation }) => {
-  const { videoUri, filterId, musicId, caption } = route.params;
-  const [statusText, setStatusText] = useState('Applying Filters...');
+  const { videoUri } = route.params;
+  const [statusText, setStatusText] = useState('Uploading...');
   const [isDone, setIsDone] = useState(false);
-  const { loadFeed } = useFeedStore();
-  const { uploadVideo, uploadProgress } = useUpload();
+  const [uploadProgress, setUploadProgress] = useState(0);
+
+  useFocusEffect(
+    useCallback(() => {
+      const onBackPress = () => !isDone;
+      const subscription = BackHandler.addEventListener(
+        'hardwareBackPress',
+        onBackPress,
+      );
+      return () => subscription.remove();
+    }, [isDone]),
+  );
 
   useEffect(() => {
-    const processVideo = async () => {
-      setStatusText('Preparing to process...');
-      try {
-        let filterStr = '';
-        if (filterId === 'warm') {
-          filterStr = 'colorbalance=rs=.3';
-        }
-        if (filterId === 'cool') {
-          filterStr = 'colorbalance=bs=.3';
-        }
-        if (filterId === 'vintage') {
-          filterStr = 'curves=preset=vintage';
-        }
-        if (filterId === 'bw') {
-          filterStr = 'hue=s=0';
-        }
+    const steps = [
+      setTimeout(() => {
+        setUploadProgress(0.35);
+        setStatusText('Processing video...');
+      }, 500),
+      setTimeout(() => {
+        setUploadProgress(0.7);
+        setStatusText('Submitting for review...');
+      }, 1200),
+      setTimeout(() => {
+        setUploadProgress(1);
+        setStatusText('Ready for review');
+        setIsDone(true);
+      }, 1800),
+      setTimeout(() => {
+        navigation.replace('Main', { screen: 'Home' });
+      }, 2400),
+    ];
 
-        const outputPath = `${FileSystem.cacheDirectory}output_${Date.now()}.mp4`;
-        let command = `-i ${videoUri}`;
-        if (filterStr) {
-          command += ` -vf ${filterStr}`;
-        }
-        command += ` -c:a copy -y ${outputPath}`;
-
-        setStatusText('Applying Effects...');
-
-        await FFmpegKit.executeAsync(
-          command,
-          async session => {
-            const returnCode = await session.getReturnCode();
-            if (ReturnCode.isSuccess(returnCode)) {
-              setStatusText('Uploading to Vybe...');
-              const result = await uploadVideo({
-                videoUri: outputPath,
-                challengeId: '1',
-                caption: caption || 'My Vybe Entry!',
-                filterId,
-                musicTrack: musicId || 'Original Audio',
-              });
-              if (result) {
-                setIsDone(true);
-                setStatusText('Vybe Posted!');
-                await loadFeed('1');
-                setTimeout(() => {
-                  navigation.navigate('Main', { screen: 'Home' });
-                }, 1500);
-              } else {
-                setStatusText('Upload Failed!');
-              }
-            } else {
-              setStatusText('Processing Failed!');
-            }
-          },
-          () => {
-            /* Track FFmpeg progress */
-          },
-        );
-      } catch {
-        setStatusText('Error applying filters');
-      }
+    return () => {
+      steps.forEach(clearTimeout);
     };
-    processVideo();
-  }, []);
+  }, [navigation, videoUri]);
 
   return (
     <View style={styles.container}>

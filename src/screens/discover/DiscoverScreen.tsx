@@ -3,10 +3,10 @@ import {
   StyleSheet,
   View,
   Text,
-  SafeAreaView,
   ScrollView,
   TextInput,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { Search } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../theme';
 import { Pill } from '../../components/ui';

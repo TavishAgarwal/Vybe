@@ -17,7 +17,7 @@ import * as Haptics from 'expo-haptics';
 
 interface InteractionBarProps {
   entry: Entry;
-  onLike: () => void;
+  onLike: () => Promise<void> | void;
   onComment: () => void;
   onShare: () => void;
   onReport?: () => void;
@@ -36,18 +36,25 @@ export const InteractionBar: React.FC<InteractionBarProps> = ({
     useNavigation<NativeStackNavigationProp<RootStackParamList>>();
 
   // Local state for optimistic visual feedback
-  const [isLiked, setIsLiked] = useState(hasLiked);
-  const [likeCount, setLikeCount] = useState(entry.voteCount);
+  const [locallyLikedEntryId, setLocallyLikedEntryId] = useState<string | null>(
+    null,
+  );
+  const hasLocalLike = locallyLikedEntryId === entry.id;
+  const isLiked = hasLiked || hasLocalLike;
+  const likeCount = entry.voteCount + (!hasLiked && hasLocalLike ? 1 : 0);
 
-  const handleLike = () => {
-    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium);
-    if (!isLiked) {
-      setIsLiked(true);
-      setLikeCount(prev => prev + 1);
-      onLike();
-    } else {
-      setIsLiked(false);
-      setLikeCount(prev => prev - 1);
+  const handleLike = async () => {
+    if (isLiked) {
+      return;
+    }
+    Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Medium).catch(
+      () => undefined,
+    );
+    setLocallyLikedEntryId(entry.id);
+    try {
+      await onLike();
+    } catch {
+      setLocallyLikedEntryId(null);
     }
   };
 
@@ -87,7 +94,9 @@ export const InteractionBar: React.FC<InteractionBarProps> = ({
       <TouchableOpacity
         style={styles.actionItem}
         onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+            () => undefined,
+          );
           onShare();
         }}
       >
@@ -100,7 +109,9 @@ export const InteractionBar: React.FC<InteractionBarProps> = ({
       <TouchableOpacity
         style={styles.actionItem}
         onPress={() => {
-          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light);
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+            () => undefined,
+          );
           if (onReport) {
             onReport();
             return;
@@ -115,7 +126,11 @@ export const InteractionBar: React.FC<InteractionBarProps> = ({
 
       <TouchableOpacity
         style={styles.actionItem}
-        onPress={() => Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light)}
+        onPress={() => {
+          Haptics.impactAsync(Haptics.ImpactFeedbackStyle.Light).catch(
+            () => undefined,
+          );
+        }}
       >
         <View style={styles.iconContainer}>
           <MoreHorizontal size={32} color={colors.text.inverse} />
@@ -138,7 +153,7 @@ const styles = StyleSheet.create({
   },
   iconContainer: {
     marginBottom: spacing.xs,
-    shadowColor: '#000',
+    shadowColor: colors.background.default,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
     shadowRadius: 2,
@@ -148,7 +163,7 @@ const styles = StyleSheet.create({
     color: colors.text.inverse,
     ...typography.weights.semiBold,
     fontSize: typography.sizes.sm,
-    textShadowColor: 'rgba(0, 0, 0, 0.75)',
+    textShadowColor: colors.background.default,
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },

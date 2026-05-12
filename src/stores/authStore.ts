@@ -3,6 +3,7 @@ import { User } from '../types/models';
 import { supabase } from '../api/supabase';
 import { clearSensitiveData } from '../utils/cleanup';
 import { logger } from '../utils/logger';
+import { DbUser } from '../types/database';
 
 interface AuthState {
   user: User | null;
@@ -13,6 +14,23 @@ interface AuthState {
   updateProfile: (data: Partial<User>) => Promise<void>;
   signPledge: () => void;
 }
+
+const mapProfileToUser = (profile: DbUser): User => ({
+  id: profile.id,
+  handle: profile.username,
+  username: profile.username,
+  displayName: profile.full_name || profile.username,
+  avatarUrl: profile.avatar_url || '',
+  bio: profile.bio || '',
+  categories: [],
+  vybeScore: profile.vybe_score || 0,
+  vybeCoins: 0,
+  strikeCount: 0,
+  pledgeSigned: true,
+  createdAt: profile.created_at,
+  followersCount: 0,
+  followingCount: 0,
+});
 
 export const useAuthStore = create<AuthState>(set => ({
   user: null, // Start null to simulate check
@@ -31,30 +49,16 @@ export const useAuthStore = create<AuthState>(set => ({
 
       // Fetch user profile from DB
       if (data.user) {
-        const { data: profile } = await supabase
+        const profileResponse = await supabase
           .from('users')
           .select('*')
           .eq('id', data.user.id)
           .single();
+        const profile = profileResponse.data as DbUser | null;
 
         if (profile) {
-          // Map DB profile to our User type
           set({
-            user: {
-              id: profile.id,
-              handle: profile.username,
-              displayName: profile.full_name || profile.username,
-              avatarUrl: profile.avatar_url,
-              bio: profile.bio || '',
-              categories: [],
-              vybeScore: profile.vybe_score || 0,
-              vybeCoins: 0,
-              strikeCount: 0,
-              pledgeSigned: true,
-              createdAt: profile.created_at,
-              followersCount: 0,
-              followingCount: 0,
-            },
+            user: mapProfileToUser(profile),
             isLoading: false,
           });
         }

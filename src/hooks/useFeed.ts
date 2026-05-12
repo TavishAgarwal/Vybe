@@ -3,6 +3,7 @@ import { entriesApi } from '../api';
 import { useFeedStore } from '../stores/feedStore';
 import { useEffect } from 'react';
 import { supabase } from '../api/supabase';
+import { DbVote } from '../types/database';
 
 export const useFeed = (challengeId: string) => {
   const queryClient = useQueryClient();
@@ -47,12 +48,16 @@ export const useFeed = (challengeId: string) => {
         },
         payload => {
           // When a new vote is inserted, bump the local vote count optimistically
-          const entryId = payload.new?.entry_id;
+          const nextVote = payload.new as Partial<DbVote> | null;
+          const entryId = nextVote?.entry_id;
           if (!entryId) {
             return;
           }
 
-          const { entries } = useFeedStore.getState();
+          const { entries, votedEntryIds } = useFeedStore.getState();
+          if (votedEntryIds.has(entryId)) {
+            return;
+          }
           const match = entries.find(e => e.id === entryId);
           if (match) {
             useFeedStore.setState({
@@ -71,7 +76,8 @@ export const useFeed = (challengeId: string) => {
           table: 'votes',
         },
         payload => {
-          const entryId = payload.old?.entry_id;
+          const previousVote = payload.old as Partial<DbVote> | null;
+          const entryId = previousVote?.entry_id;
           if (!entryId) {
             return;
           }

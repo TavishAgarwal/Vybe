@@ -31,6 +31,7 @@ const write = (level: LogLevel, message: string, metadata?: unknown) => {
     return;
   }
   const payload = metadata === undefined ? [] : [redact(metadata)];
+  // eslint-disable-next-line no-console
   console[level](`[Vybe] ${message}`, ...payload);
 };
 

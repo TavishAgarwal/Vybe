@@ -6,5 +6,8 @@ module.exports = {
   transformIgnorePatterns: [
     'node_modules/(?!((jest-)?react-native|@react-native(-community)?)|expo(nent)?|@expo(nent)?/.*|@expo-google-fonts/.*|react-navigation|@react-navigation/.*|@unimodules/.*|unimodules|sentry-expo|native-base|react-native-svg|posthog-react-native)',
   ],
+  modulePathIgnorePatterns: ['<rootDir>/missing_headers/'],
+  watchPathIgnorePatterns: ['<rootDir>/missing_headers/'],
+  testPathIgnorePatterns: ['<rootDir>/missing_headers/'],
   testMatch: ['<rootDir>/__tests__/**/*.test.ts'],
 };

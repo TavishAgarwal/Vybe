@@ -85,6 +85,8 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
       onChange={handleSheetChanges}
       backdropComponent={renderBackdrop}
       enablePanDownToClose
+      keyboardBehavior="interactive"
+      keyboardBlurBehavior="restore"
       backgroundStyle={styles.sheetBackground}
       handleIndicatorStyle={styles.indicator}
     >
@@ -93,8 +95,8 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
 
         {isLoading ? (
           <View style={styles.loadingContainer}>
-            <SkeletonLoader height={60} style={{ marginBottom: 12 }} />
-            <SkeletonLoader height={60} style={{ marginBottom: 12 }} />
+            <SkeletonLoader height={60} style={styles.loadingRow} />
+            <SkeletonLoader height={60} style={styles.loadingRow} />
             <SkeletonLoader height={60} />
           </View>
         ) : (
@@ -124,7 +126,7 @@ export const CommentSheet: React.FC<CommentSheetProps> = ({
             disabled={!inputText.trim() || postComment.isPending}
             isLoading={postComment.isPending}
             style={styles.postButton}
-            textStyle={{ fontSize: 14 }}
+            textStyle={styles.postButtonText}
           />
         </KeyboardAvoidingView>
       </View>
@@ -153,6 +155,9 @@ const styles = StyleSheet.create({
   },
   loadingContainer: {
     padding: spacing.md,
+  },
+  loadingRow: {
+    marginBottom: spacing.sm,
   },
   listContent: {
     padding: spacing.md,
@@ -197,5 +202,8 @@ const styles = StyleSheet.create({
   postButton: {
     height: 40,
     paddingHorizontal: spacing.md,
+  },
+  postButtonText: {
+    fontSize: typography.sizes.sm,
   },
 });

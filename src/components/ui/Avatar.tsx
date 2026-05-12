@@ -58,8 +58,6 @@ export const Avatar: React.FC<AvatarProps> = ({
               width: dimension * 0.25,
               height: dimension * 0.25,
               borderRadius: (dimension * 0.25) / 2,
-              right: 0,
-              bottom: 0,
               borderWidth: Math.max(2, dimension * 0.05),
             },
           ]}
@@ -89,6 +87,8 @@ const styles = StyleSheet.create({
   },
   indicator: {
     position: 'absolute',
+    right: 0,
+    bottom: 0,
     backgroundColor: colors.status.success,
     borderColor: colors.background.default,
   },

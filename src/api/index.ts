@@ -6,10 +6,11 @@ import {
   DbEntry,
   DbComment,
   CreateEntryPayload,
+  DbChallenge,
 } from '../types/database';
 import { useAuthStore } from '../stores/authStore';
 
-const mapUser = (dbUser: DbUser): User => ({
+export const mapUser = (dbUser: DbUser): User => ({
   id: dbUser.id,
   handle: dbUser.username,
   username: dbUser.username,
@@ -49,13 +50,15 @@ const mapEntry = (dbEntry: DbEntry): Entry => ({
 
 export const challengesApi = {
   getActive: async () => {
-    const { data, error } = await supabase
+    const response = await supabase
       .from('challenges')
       .select('*')
       .eq('status', 'active')
       .order('ends_at', { ascending: true })
       .limit(1)
       .single();
+    const data = response.data as DbChallenge | null;
+    const error = response.error;
 
     if (error && error.code !== 'PGRST116') {
       throw error;
@@ -92,19 +95,21 @@ export const entriesApi = {
     const start = cursor * limit;
     const end = start + limit - 1;
 
-    const { data, error } = await supabase
+    const response = await supabase
       .from('entries')
       .select('*, user:users(*)')
       .eq('challenge_id', challengeId)
       .eq('status', 'live')
       .order('created_at', { ascending: false })
       .range(start, end);
+    const data = (response.data ?? []) as DbEntry[];
+    const error = response.error;
 
     if (error) {
       throw error;
     }
 
-    const entries = (data || []).map((row: DbEntry) => mapEntry(row));
+    const entries = data.map(row => mapEntry(row));
 
     return {
       data: entries,
@@ -113,16 +118,21 @@ export const entriesApi = {
   },
 
   createEntry: async (entryData: CreateEntryPayload) => {
-    const { data, error } = await supabase
+    const response = await supabase
       .from('entries')
       .insert([entryData])
       .select()
       .single();
+    const data = response.data as DbEntry | null;
+    const error = response.error;
 
     if (error) {
       throw error;
     }
-    return { data: data as DbEntry };
+    if (!data) {
+      throw new Error('Entry create returned no data.');
+    }
+    return { data };
   },
 };
 
@@ -151,18 +161,20 @@ export const votesApi = {
 
 export const commentsApi = {
   getByEntry: async (entryId: string) => {
-    const { data, error } = await supabase
+    const response = await supabase
       .from('comments')
       .select('*, user:users(*)')
       .eq('entry_id', entryId)
       .gte('positivity_score', 0.3)
       .order('created_at', { ascending: false });
+    const data = (response.data ?? []) as DbComment[];
+    const error = response.error;
 
     if (error) {
       throw error;
     }
 
-    const comments: Comment[] = (data || []).map((dbComment: DbComment) => ({
+    const comments: Comment[] = data.map(dbComment => ({
       id: dbComment.id,
       entryId: dbComment.entry_id,
       userId: dbComment.user_id,
@@ -184,29 +196,31 @@ export const commentsApi = {
       throw new Error('Not authenticated');
     }
 
-    const { data } = await apiClient.post(
+    const response = await apiClient.post<Comment>(
       `/entry-comment?entryId=${encodeURIComponent(entryId)}`,
       { text },
     );
 
-    return { data: data as Comment };
+    return { data: response.data };
   },
 };
 
 export const leaderboardApi = {
   getCurrent: async () => {
-    const { data, error } = await supabase
+    const response = await supabase
       .from('entries')
       .select('*, user:users(*)')
       .eq('status', 'live')
       .order('vote_count', { ascending: false })
       .limit(20);
+    const data = (response.data ?? []) as DbEntry[];
+    const error = response.error;
 
     if (error) {
       throw error;
     }
 
-    const entries = (data || []).map((row: DbEntry) => mapEntry(row));
+    const entries = data.map(row => mapEntry(row));
     return { data: entries };
   },
 };

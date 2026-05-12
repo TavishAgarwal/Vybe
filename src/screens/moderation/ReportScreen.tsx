@@ -3,13 +3,13 @@ import {
   StyleSheet,
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
   TextInput,
   KeyboardAvoidingView,
   Platform,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, AlertTriangle } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../theme';
 import { GradientButton } from '../../components/ui';
@@ -60,7 +60,7 @@ export const ReportScreen: React.FC<Props> = ({ route, navigation }) => {
         <Text style={styles.headerTitle}>
           Report {commentId ? 'Comment' : 'Vybe'}
         </Text>
-        <View style={{ width: 24 }} />
+        <View style={styles.headerSpacer} />
       </View>
 
       <KeyboardAvoidingView
@@ -98,7 +98,7 @@ export const ReportScreen: React.FC<Props> = ({ route, navigation }) => {
             ))}
           </View>
 
-          <Text style={[styles.sectionTitle, { marginTop: spacing.xl }]}>
+          <Text style={[styles.sectionTitle, styles.detailsTitle]}>
             Additional Details (Optional)
           </Text>
           <TextInput
@@ -146,6 +146,9 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes.lg,
     color: colors.text.primary,
   },
+  headerSpacer: {
+    width: 24,
+  },
   content: {
     flex: 1,
   },
@@ -173,6 +176,9 @@ const styles = StyleSheet.create({
     color: colors.text.primary,
     marginBottom: spacing.md,
   },
+  detailsTitle: {
+    marginTop: spacing.xl,
+  },
   reasonsContainer: {
     gap: spacing.sm,
   },
@@ -183,7 +189,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.secondary,
     borderRadius: spacing.radius.md,
     borderWidth: 1,
-    borderColor: 'transparent',
+    borderColor: colors.background.secondary,
     gap: spacing.md,
   },
   reasonItemSelected: {

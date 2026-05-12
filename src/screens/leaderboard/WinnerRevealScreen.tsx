@@ -1,5 +1,6 @@
 import React, { useEffect } from 'react';
-import { StyleSheet, View, Text, SafeAreaView } from 'react-native';
+import { StyleSheet, View, Text } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import Animated, {
   useSharedValue,
   useAnimatedStyle,
@@ -38,7 +39,7 @@ export const WinnerRevealScreen: React.FC<Props> = ({ navigation }) => {
       1200,
       withSpring(0, { damping: 8, stiffness: 100 }),
     );
-  }, []);
+  }, [crownY, opacity, scale, titleOpacity]);
 
   const animatedAvatarStyle = useAnimatedStyle(() => ({
     transform: [{ scale: scale.value }],

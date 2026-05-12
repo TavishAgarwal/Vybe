@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from 'react';
+import React, { useEffect, useState } from 'react';
 import { Animated, StyleSheet, ViewStyle, DimensionValue } from 'react-native';
 import { colors, spacing } from '../../theme';
 
@@ -15,10 +15,10 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
   borderRadius = spacing.radius.sm,
   style,
 }) => {
-  const opacity = useRef(new Animated.Value(0.3)).current;
+  const [opacity] = useState(() => new Animated.Value(0.3));
 
   useEffect(() => {
-    Animated.loop(
+    const animation = Animated.loop(
       Animated.sequence([
         Animated.timing(opacity, {
           toValue: 0.7,
@@ -31,7 +31,9 @@ export const SkeletonLoader: React.FC<SkeletonLoaderProps> = ({
           useNativeDriver: true,
         }),
       ]),
-    ).start();
+    );
+    animation.start();
+    return () => animation.stop();
   }, [opacity]);
 
   return (

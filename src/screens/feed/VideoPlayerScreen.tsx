@@ -1,5 +1,6 @@
 import React from 'react';
-import { StyleSheet, View, SafeAreaView, TouchableOpacity } from 'react-native';
+import { StyleSheet, View, TouchableOpacity } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import { FeedItem } from '../../components';
@@ -25,7 +26,13 @@ export const VideoPlayerScreen: React.FC<Props> = ({ route, navigation }) => {
       <SafeAreaView style={styles.backButtonSafeArea}>
         <TouchableOpacity
           style={styles.backButton}
-          onPress={() => navigation.goBack()}
+          onPress={() => {
+            if (navigation.canGoBack()) {
+              navigation.goBack();
+            } else {
+              navigation.replace('Main', { screen: 'Home' });
+            }
+          }}
         >
           <ChevronLeft color={colors.text.inverse} size={32} />
         </TouchableOpacity>
@@ -47,7 +54,7 @@ const styles = StyleSheet.create({
   },
   backButton: {
     padding: 16,
-    shadowColor: '#000',
+    shadowColor: colors.background.default,
     shadowOffset: { width: 0, height: 1 },
     shadowOpacity: 0.3,
     shadowRadius: 2,

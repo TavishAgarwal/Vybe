@@ -3,10 +3,10 @@ import {
   StyleSheet,
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { LogOut } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../theme';
 import { Avatar, GradientButton, Pill } from '../../components/ui';

@@ -33,17 +33,21 @@ export const useFeedStore = create<FeedState>((set, get) => ({
     try {
       const cursor = refresh ? 0 : nextCursor;
       const response = await entriesApi.getFeed(challengeId, cursor);
+      const nextEntries = refresh
+        ? response.data || []
+        : [...entries, ...(response.data || [])];
+      const dedupedEntries = Array.from(
+        new Map(nextEntries.map(entry => [entry.id, entry])).values(),
+      );
 
       set({
-        entries: refresh
-          ? response.data || []
-          : [...entries, ...(response.data || [])],
+        entries: dedupedEntries,
         nextCursor: response.nextCursor,
         hasMore: !!response.nextCursor,
         isLoading: false,
         currentIndex: refresh ? 0 : get().currentIndex,
       });
-    } catch (e) {
+    } catch {
       set({ isLoading: false });
     }
   },
@@ -75,7 +79,9 @@ export const useFeedStore = create<FeedState>((set, get) => ({
       set({
         votedEntryIds: rollVoted,
         entries: entries.map(e =>
-          e.id === entryId ? { ...e, voteCount: e.voteCount - 1 } : e,
+          e.id === entryId
+            ? { ...e, voteCount: Math.max(0, e.voteCount - 1) }
+            : e,
         ),
       });
       throw error;

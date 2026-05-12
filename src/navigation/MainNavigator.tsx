@@ -10,6 +10,23 @@ import { CreateScreen } from '../screens/create/CreateScreen';
 import { ProfileScreen } from '../screens/profile/ProfileScreen';
 
 const Tab = createBottomTabNavigator<MainTabParamList>();
+
+const HomeIcon = ({ color }: { color: string }) => (
+  <Home color={color} size={24} />
+);
+const DiscoverIcon = ({ color }: { color: string }) => (
+  <Compass color={color} size={24} />
+);
+const CreateIcon = ({ color }: { color: string }) => (
+  <PlusSquare color={color} size={24} />
+);
+const LeaderboardIcon = ({ color }: { color: string }) => (
+  <Trophy color={color} size={24} />
+);
+const ProfileIcon = ({ color }: { color: string }) => (
+  <User color={color} size={24} />
+);
+
 export const MainNavigator = () => {
   return (
     <Tab.Navigator
@@ -27,35 +44,35 @@ export const MainNavigator = () => {
         name="Home"
         component={HomeScreen}
         options={{
-          tabBarIcon: ({ color }) => <Home color={color} size={24} />,
+          tabBarIcon: HomeIcon,
         }}
       />
       <Tab.Screen
         name="Discover"
         component={DiscoverScreen}
         options={{
-          tabBarIcon: ({ color }) => <Compass color={color} size={24} />,
+          tabBarIcon: DiscoverIcon,
         }}
       />
       <Tab.Screen
         name="Create"
         component={CreateScreen}
         options={{
-          tabBarIcon: ({ color }) => <PlusSquare color={color} size={24} />,
+          tabBarIcon: CreateIcon,
         }}
       />
       <Tab.Screen
         name="Leaderboard"
         component={LeaderboardScreen}
         options={{
-          tabBarIcon: ({ color }) => <Trophy color={color} size={24} />,
+          tabBarIcon: LeaderboardIcon,
         }}
       />
       <Tab.Screen
         name="Profile"
         component={ProfileScreen}
         options={{
-          tabBarIcon: ({ color }) => <User color={color} size={24} />,
+          tabBarIcon: ProfileIcon,
         }}
       />
     </Tab.Navigator>

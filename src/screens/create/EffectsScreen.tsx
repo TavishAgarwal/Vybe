@@ -1,12 +1,12 @@
-import React, { useState } from 'react';
+import React, { useMemo, useState } from 'react';
 import {
   StyleSheet,
   View,
   Text,
-  SafeAreaView,
   TouchableOpacity,
   ScrollView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { ArrowLeft, Music, Wand2, Check } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../theme';
 import Video from 'react-native-video';
@@ -37,6 +37,10 @@ export const EffectsScreen: React.FC<Props> = ({ route, navigation }) => {
   const [selectedFilter, setSelectedFilter] = useState(FILTERS[0]);
   const [selectedMusic, setSelectedMusic] = useState(MUSIC_TRACKS[0]);
   const [activeTab, setActiveTab] = useState<'filters' | 'music'>('filters');
+  const selectedFilterOverlay = useMemo(
+    () => [styles.filterOverlay, { backgroundColor: selectedFilter.color }],
+    [selectedFilter.color],
+  );
 
   const handleNext = () => {
     navigation.navigate('Caption', {
@@ -57,12 +61,7 @@ export const EffectsScreen: React.FC<Props> = ({ route, navigation }) => {
           muted={selectedMusic.id !== 'none'}
         />
         {/* Simulate filter with CSS overlay for preview */}
-        <View
-          style={[
-            StyleSheet.absoluteFill,
-            { backgroundColor: selectedFilter.color, pointerEvents: 'none' },
-          ]}
-        />
+        <View pointerEvents="none" style={selectedFilterOverlay} />
       </View>
 
       <SafeAreaView style={styles.overlay}>
@@ -143,15 +142,7 @@ export const EffectsScreen: React.FC<Props> = ({ route, navigation }) => {
                     ]}
                     onPress={() => setSelectedFilter(f)}
                   >
-                    <View
-                      style={[
-                        styles.filterPreview,
-                        {
-                          backgroundColor:
-                            f.color !== 'transparent' ? f.color : '#333',
-                        },
-                      ]}
-                    />
+                    <View style={getFilterPreviewStyle(f.color)} />
                     <Text style={styles.optionText}>{f.name}</Text>
                   </TouchableOpacity>
                 ))}
@@ -196,9 +187,12 @@ export const EffectsScreen: React.FC<Props> = ({ route, navigation }) => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: colors.background.default,
   },
   videoContainer: {
+    ...StyleSheet.absoluteFillObject,
+  },
+  filterOverlay: {
     ...StyleSheet.absoluteFillObject,
   },
   overlay: {
@@ -212,20 +206,20 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: colors.background.default,
     borderRadius: spacing.radius.full,
   },
   nextButton: {
     paddingHorizontal: spacing.xl,
   },
   bottomControls: {
-    backgroundColor: 'rgba(0,0,0,0.8)',
+    backgroundColor: colors.background.default,
     paddingBottom: spacing.lg,
   },
   tabs: {
     flexDirection: 'row',
     borderBottomWidth: 1,
-    borderBottomColor: 'rgba(255,255,255,0.1)',
+    borderBottomColor: colors.border.default,
   },
   tab: {
     flex: 1,
@@ -267,7 +261,7 @@ const styles = StyleSheet.create({
     height: 60,
     borderRadius: spacing.radius.full,
     borderWidth: 2,
-    borderColor: 'transparent',
+    borderColor: colors.background.default,
   },
   optionText: {
     color: colors.text.inverse,
@@ -278,7 +272,7 @@ const styles = StyleSheet.create({
     flexDirection: 'row',
     alignItems: 'center',
     gap: spacing.sm,
-    backgroundColor: 'rgba(255,255,255,0.1)',
+    backgroundColor: colors.background.secondary,
     paddingHorizontal: spacing.lg,
     paddingVertical: spacing.md,
     borderRadius: spacing.radius.full,
@@ -294,3 +288,11 @@ const styles = StyleSheet.create({
     ...typography.weights.bold,
   },
 });
+
+const getFilterPreviewStyle = (color: string) => [
+  styles.filterPreview,
+  {
+    backgroundColor:
+      color !== 'transparent' ? color : colors.background.tertiary,
+  },
+];

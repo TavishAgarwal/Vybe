@@ -1,7 +1,7 @@
 import React from 'react';
 import { StyleSheet, ViewStyle } from 'react-native';
 import { BlurView, BlurTint } from 'expo-blur';
-import { spacing } from '../../theme';
+import { colors, spacing } from '../../theme';
 
 interface GlassPanelProps {
   children: React.ReactNode;
@@ -32,6 +32,6 @@ const styles = StyleSheet.create({
     borderRadius: spacing.radius.xl,
     overflow: 'hidden',
     borderWidth: 1,
-    borderColor: 'rgba(255,255,255,0.1)',
+    borderColor: colors.border.light,
   },
 });

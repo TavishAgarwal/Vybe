@@ -23,9 +23,9 @@ export const LeaderboardCard: React.FC<LeaderboardCardProps> = ({
       case 1:
         return colors.primary.base;
       case 2:
-        return '#94A3B8'; // Silver
+        return colors.text.secondary;
       case 3:
-        return '#B45309'; // Bronze
+        return colors.accent.base;
       default:
         return colors.text.secondary;
     }
@@ -77,8 +77,8 @@ const styles = StyleSheet.create({
     marginBottom: spacing.sm,
   },
   currentUserContainer: {
-    backgroundColor: colors.primary.base + '10', // 10% opacity primary
-    borderColor: colors.primary.base + '30',
+    backgroundColor: colors.background.elevated,
+    borderColor: colors.primary.base,
     borderWidth: 1,
   },
   rankContainer: {

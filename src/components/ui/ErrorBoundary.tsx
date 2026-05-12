@@ -1,12 +1,12 @@
 import React, { Component, ErrorInfo, ReactNode } from 'react';
 import {
   DevSettings,
-  SafeAreaView,
   StyleSheet,
   Text,
   TouchableOpacity,
   View,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import { AlertTriangle } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../theme';
 import { logger } from '../../utils/logger';

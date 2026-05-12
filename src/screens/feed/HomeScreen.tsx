@@ -1,4 +1,4 @@
-import React, { useState, useCallback, useRef } from 'react';
+import React, { useState, useCallback, useMemo } from 'react';
 import {
   StyleSheet,
   View,
@@ -9,6 +9,7 @@ import {
   RefreshControl,
   Text,
   Share,
+  Platform,
 } from 'react-native';
 import { useFocusEffect } from '@react-navigation/native';
 import { useFeed, useActiveChallenge } from '../../hooks';
@@ -56,31 +57,44 @@ export const HomeScreen = () => {
     }, []),
   );
 
-  const viewabilityConfig = useRef({
-    itemVisiblePercentThreshold: 70,
-  }).current;
+  const viewabilityConfig = useMemo(
+    () => ({
+      itemVisiblePercentThreshold: 70,
+    }),
+    [],
+  );
 
-  const onViewableItemsChanged = useRef(
+  const onViewableItemsChanged = useCallback(
     ({ viewableItems }: { viewableItems: ViewToken[] }) => {
       if (viewableItems.length > 0 && viewableItems[0].index !== null) {
         setCurrentIndex(viewableItems[0].index);
       }
     },
-  ).current;
+    [setCurrentIndex],
+  );
 
-  const handleLike = (entryId: string) => {
-    vote(entryId);
-  };
+  const handleLike = useCallback((entryId: string) => vote(entryId), [vote]);
 
-  const handleComment = (entryId: string) => {
+  const handleComment = useCallback((entryId: string) => {
     setActiveCommentEntryId(entryId);
-  };
+  }, []);
 
-  const handleShare = (entryId: string) => {
+  const handleShare = useCallback((entryId: string) => {
     Share.share({ message: `Check out this Vybe entry: ${entryId}` }).catch(
       () => undefined,
     );
-  };
+  }, []);
+
+  const handleRefresh = useCallback(() => {
+    useFeedStore.setState({ nextCursor: undefined, currentIndex: 0 });
+    refetch().catch(() => undefined);
+  }, [refetch]);
+
+  const handleEndReached = useCallback(() => {
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage().catch(() => undefined);
+    }
+  }, [fetchNextPage, hasNextPage, isFetchingNextPage]);
 
   if (status === 'pending') {
     return (
@@ -111,7 +125,7 @@ export const HomeScreen = () => {
         data={entries}
         keyExtractor={item => item.id}
         renderItem={({ item, index }) => (
-          <View style={{ height: ITEM_HEIGHT }}>
+          <View style={styles.itemContainer}>
             <FeedItem
               entry={item}
               isActive={
@@ -137,17 +151,17 @@ export const HomeScreen = () => {
         refreshControl={
           <RefreshControl
             refreshing={isRefetching}
-            onRefresh={refetch}
+            onRefresh={handleRefresh}
             tintColor={colors.primary.base}
             colors={[colors.primary.base]}
           />
         }
-        onEndReached={() => {
-          if (hasNextPage && !isFetchingNextPage) {
-            fetchNextPage();
-          }
-        }}
+        onEndReached={handleEndReached}
         onEndReachedThreshold={0.5}
+        initialNumToRender={1}
+        maxToRenderPerBatch={2}
+        windowSize={3}
+        removeClippedSubviews={Platform.OS === 'android'}
         ListFooterComponent={
           isFetchingNextPage ? (
             <View style={styles.footerLoader}>
@@ -169,6 +183,9 @@ const styles = StyleSheet.create({
   container: {
     flex: 1,
     backgroundColor: colors.background.default,
+  },
+  itemContainer: {
+    height: ITEM_HEIGHT,
   },
   centerContainer: {
     flex: 1,

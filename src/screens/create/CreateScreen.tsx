@@ -4,8 +4,8 @@ import {
   View,
   Text,
   TouchableOpacity,
-  SafeAreaView,
 } from 'react-native';
+import { SafeAreaView } from 'react-native-safe-area-context';
 import {
   Camera,
   useCameraDevice,
@@ -28,9 +28,9 @@ export const CreateScreen = () => {
 
   React.useEffect(() => {
     if (!hasPermission) {
-      requestPermission();
+      requestPermission().catch(() => undefined);
     }
-  }, [hasPermission]);
+  }, [hasPermission, requestPermission]);
 
   const toggleCamera = () => {
     setCameraPosition(p => (p === 'back' ? 'front' : 'back'));
@@ -95,11 +95,11 @@ export const CreateScreen = () => {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: colors.background.default,
   },
   centerContainer: {
     flex: 1,
-    backgroundColor: '#000',
+    backgroundColor: colors.background.default,
     alignItems: 'center',
     justifyContent: 'center',
   },
@@ -118,7 +118,7 @@ const styles = StyleSheet.create({
   },
   iconButton: {
     padding: spacing.sm,
-    backgroundColor: 'rgba(0,0,0,0.4)',
+    backgroundColor: colors.background.default,
     borderRadius: spacing.radius.full,
   },
   footer: {
@@ -130,7 +130,7 @@ const styles = StyleSheet.create({
     height: 80,
     borderRadius: 40,
     borderWidth: 4,
-    borderColor: 'rgba(255, 255, 255, 0.4)',
+    borderColor: colors.border.light,
     alignItems: 'center',
     justifyContent: 'center',
     marginBottom: spacing.sm,
@@ -144,7 +144,7 @@ const styles = StyleSheet.create({
   instructionText: {
     color: colors.text.inverse,
     ...typography.weights.medium,
-    textShadowColor: 'rgba(0,0,0,0.5)',
+    textShadowColor: colors.background.default,
     textShadowOffset: { width: 0, height: 1 },
     textShadowRadius: 2,
   },

@@ -1,4 +1,8 @@
-import axios from 'axios';
+import axios, {
+  AxiosError,
+  AxiosHeaders,
+  InternalAxiosRequestConfig,
+} from 'axios';
 import { DeviceEventEmitter } from 'react-native';
 import { secureStorage } from '../utils/storage';
 import { getEnv, isHttpsUrl } from '../utils/env';
@@ -23,6 +27,15 @@ const refreshClient = axios.create({
 
 let refreshPromise: Promise<string | null> | null = null;
 
+interface RefreshResponse {
+  accessToken?: unknown;
+  refreshToken?: unknown;
+}
+
+interface RetryableRequestConfig extends InternalAxiosRequestConfig {
+  _retry?: boolean;
+}
+
 const refreshAccessToken = async () => {
   if (refreshPromise) {
     return refreshPromise;
@@ -34,9 +47,12 @@ const refreshAccessToken = async () => {
       return null;
     }
 
-    const response = await refreshClient.post('/auth-refresh', {
-      refreshToken,
-    });
+    const response = await refreshClient.post<RefreshResponse>(
+      '/auth-refresh',
+      {
+        refreshToken,
+      },
+    );
     const accessToken = response.data?.accessToken;
     const nextRefreshToken = response.data?.refreshToken;
 
@@ -61,7 +77,12 @@ apiClient.interceptors.request.use(
   async config => {
     const token = secureStorage.getString('auth-token');
     if (token) {
-      config.headers.Authorization = `Bearer ${token}`;
+      if (config.headers instanceof AxiosHeaders) {
+        config.headers.set('Authorization', `Bearer ${token}`);
+      } else {
+        config.headers = AxiosHeaders.from(config.headers);
+        config.headers.set('Authorization', `Bearer ${token}`);
+      }
     }
     if (__DEV__) {
       logger.debug('API request', { method: config.method, url: config.url });
@@ -81,15 +102,16 @@ apiClient.interceptors.response.use(
     }
     return response;
   },
-  async error => {
-    const originalRequest = error.config;
+  async (error: AxiosError) => {
+    const originalRequest = error.config as RetryableRequestConfig | undefined;
     const status = error.response?.status;
 
     if (status === 401 && originalRequest && !originalRequest._retry) {
       originalRequest._retry = true;
       const accessToken = await refreshAccessToken();
       if (accessToken) {
-        originalRequest.headers.Authorization = `Bearer ${accessToken}`;
+        originalRequest.headers = AxiosHeaders.from(originalRequest.headers);
+        originalRequest.headers.set('Authorization', `Bearer ${accessToken}`);
         return apiClient(originalRequest);
       }
 
@@ -98,7 +120,10 @@ apiClient.interceptors.response.use(
     }
 
     if (status === 429) {
-      const retryAfter = error.response?.headers?.['retry-after'];
+      const headers = error.response?.headers as
+        | Record<string, unknown>
+        | undefined;
+      const retryAfter = headers?.['retry-after'];
       logger.warn('API rate limited', { retryAfter });
     }
 

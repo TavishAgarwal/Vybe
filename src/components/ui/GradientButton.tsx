@@ -117,7 +117,7 @@ const styles = StyleSheet.create({
     backgroundColor: colors.background.secondary,
   },
   outlineContainer: {
-    backgroundColor: 'transparent',
+    backgroundColor: colors.background.default,
     borderWidth: 1,
     borderColor: colors.border.default,
   },
