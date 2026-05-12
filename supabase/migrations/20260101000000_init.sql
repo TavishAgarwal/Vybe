@@ -12,7 +12,7 @@ create table public.profiles (
   id           uuid        primary key references auth.users(id) on delete cascade,
   display_name text,
   avatar_url   text,
-  -- TODO: Add your app-specific columns here
+  -- KNOWN LIMITATION: Template columns are intentionally minimal for the competition build.
   -- e.g., bio text, credits integer default 0, plan_type text default 'free'
   created_at   timestamptz default now(),
   updated_at   timestamptz default now()

@@ -4,13 +4,15 @@ import { Stack, useNavigationContainerRef, usePathname } from 'expo-router'
 import { QueryClientProvider } from '@tanstack/react-query'
 import { queryClient } from '@/lib/queryClient'
 import * as Sentry from '@sentry/react-native'
+import { getEnv } from '@/src/utils/env'
+import { logger } from '@/src/utils/logger'
 
 const routingInstrumentation = Sentry.reactNavigationIntegration()
 
 Sentry.init({
-  dsn: process.env.EXPO_PUBLIC_SENTRY_DSN ?? '',
+  dsn: getEnv('EXPO_PUBLIC_SENTRY_DSN'),
   environment: __DEV__ ? 'development' : 'production',
-  enabled: !__DEV__ && !!process.env.EXPO_PUBLIC_SENTRY_DSN,
+  enabled: !__DEV__ && !!getEnv('EXPO_PUBLIC_SENTRY_DSN'),
   integrations: [routingInstrumentation],
   tracesSampleRate: 0,
 })
@@ -65,7 +67,11 @@ class ErrorBoundary extends React.Component<
   }
 
   componentDidCatch(error: Error, info: React.ErrorInfo) {
-    console.error('[ErrorBoundary] Uncaught error:', error, info)
+    logger.error('[ErrorBoundary] Uncaught error', {
+      name: error.name,
+      message: error.message,
+      componentStack: info.componentStack,
+    })
     Sentry.captureException(error, { extra: { componentStack: info.componentStack } })
   }
 
@@ -164,7 +170,7 @@ function RootLayout() {
         setOnboardingCompleted(null)
       }
     }).catch(() => {
-      console.warn('[Auth] Could not reach Supabase — defaulting to signed-out state.')
+      logger.warn('[Auth] Could not reach Supabase — defaulting to signed-out state.')
       setIsAuthed(false)
     })
 

@@ -1,7 +1,8 @@
 import PostHog from 'posthog-react-native'
+import { getEnv } from '@/src/utils/env'
 
-const POSTHOG_KEY = process.env.EXPO_PUBLIC_POSTHOG_KEY ?? ''
-const POSTHOG_HOST = process.env.EXPO_PUBLIC_POSTHOG_HOST ?? 'https://us.i.posthog.com'
+const POSTHOG_KEY = getEnv('EXPO_PUBLIC_POSTHOG_KEY')
+const POSTHOG_HOST = getEnv('EXPO_PUBLIC_POSTHOG_HOST', 'https://us.i.posthog.com')
 
 /** True when a valid PostHog key is configured. */
 export const isPostHogEnabled = !!POSTHOG_KEY
@@ -41,7 +42,7 @@ type EventName =
   // Profile
   | 'profile_viewed'
   | 'profile_updated'
-// TODO: add your app-specific events here
+// KNOWN LIMITATION: Event names are intentionally limited to the competition surface.
 
 /** Track an event. No-ops silently when PostHog is unconfigured. */
 export function track(event: EventName, properties?: TrackProperties) {

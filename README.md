@@ -1,556 +1,244 @@
-# 8x React Native Template
+<div align="center">
 
-Production-ready React Native Expo template. Clone it, rename it, brand it, ship it.
-Supabase auth + DB, RevenueCat subscriptions, Sentry, PostHog, and TanStack Query are all pre-wired.
-No boilerplate to write — just build your features.
+# 🔥 Vybe
+### Positive Social Video Platform
 
----
+*Your stage. Your vybe. Weekly.*
 
-## What's pre-built
+![Version](https://img.shields.io/badge/version-1.0.0-7F77DD)
+![Platform](https://img.shields.io/badge/platform-iOS%20%7C%20Android-lightgrey)
+![Built With](https://img.shields.io/badge/built%20with-Expo%20%7C%20React%20Native-blue)
+![TypeScript](https://img.shields.io/badge/TypeScript-strict-3178C6)
+![License](https://img.shields.io/badge/license-MIT-green)
 
-| Feature | What you get |
-|---|---|
-| **Auth** | Passwordless OTP email — no passwords, no user support headaches |
-| **Social login** | Google + Apple OAuth wired via Supabase — buttons work, just add credentials |
-| **Onboarding** | One-step display name capture with Supabase profile upsert |
-| **Auth routing** | Three-zone guard (public → onboarding → authenticated) — zero manual navigation |
-| **Subscriptions** | RevenueCat IAP fully wired — `useSubscription().isPremium` anywhere in the app |
-| **Paywall** | Full upgrade screen — monthly/yearly packages, savings badge, restore, promo code redeem |
-| **Data fetching** | TanStack Query with retry, 30s cache, and placeholder data — screens never flash empty |
-| **Database** | Full domain schema — items, tasks, notifications, activity feed — all with RLS + soft deletes |
-| **Toast system** | Animated bottom toasts with success/error/info variants — `useToast()` anywhere |
-| **Bottom sheet modals** | All confirmations slide up from the bottom — no jarring center popups |
-| **Settings** | Toggle preferences persisted to AsyncStorage — survive app restarts |
-| **Error tracking** | Sentry wired and disabled in dev — zero noise during development |
-| **Analytics** | PostHog with typed event names + automatic screen tracking on every navigation |
-| **Feature flags** | `useFeatureFlag('flag')` hook backed by PostHog — safe rollouts from day one |
-| **Offline UX** | Mid-session banner + full launch-offline overlay — handles both cases |
-| **CI/CD** | GitHub Actions — typecheck + tests run on every push and PR |
-| **Tests** | Jest + jest-expo setup with 14 passing utility tests out of the box |
-| **Deep linking** | App scheme + Android intent filters + iOS associated domains scaffold |
-| **Dev skip** | Tap "Skip to Home" in dev — bypasses auth instantly with no network call |
-| **Design system** | 59 theme tokens — change one `ACCENT` hex to rebrand the entire app |
-| **Typography** | Inter via `@expo-google-fonts` — `<Text>` auto-applies correct weight, fixes Android bug |
-| **Component library** | Button (5 variants), Card, StatusBadge, SettingsRow, TextInputField, AppModal |
-| **Navigation** | Expo Router file-based routing — add a file, get a screen |
-| **i18n** | i18next with English locale ready — drop a JSON file to add a language |
-| **RevenueCat webhook** | Supabase edge function syncs `plan_type` on every subscription event |
+</div>
 
 ---
 
-## Stack
+## What is Vybe?
 
-| Layer | Package | Version |
-|---|---|---|
-| Framework | expo | ~55.0.14 |
-| Runtime | react-native | 0.83.4 |
-| Language | TypeScript | ~5.9 |
-| Routing | expo-router | ~55.0.12 |
-| Styling | nativewind + tailwindcss | ^4.2 / ^3.4 |
-| Auth + DB | @supabase/supabase-js | ^2.100 |
-| Data fetching | @tanstack/react-query | ^5.99 |
-| Subscriptions | react-native-purchases | ^9.15 |
-| Error tracking | @sentry/react-native | ~7.11 |
-| Analytics | posthog-react-native | ^4.39 |
-| i18n | i18next + react-i18next | ^26 / ^17 |
-| Animations | react-native-reanimated | 4.2.1 |
-| Icons | lucide-react-native + @expo/vector-icons | latest |
-| Testing | jest + jest-expo | ^29 / ^55 |
+Vybe is a mobile-first short-form video platform where creators
+compete in weekly themed talent challenges — moderated entirely
+for positivity. No toxicity. No negativity. Just talent.
+
+Every Monday a new challenge drops (singing, dancing, comedy,
+cooking, art, or instruments). Creators submit their entries
+before Saturday. The community votes. Winners are revealed
+every Sunday night with a cinematic reveal screen.
 
 ---
 
-## Prerequisites
+## Screenshots
 
-Install these once on your machine before starting any project.
+<!-- Add screenshots here after building -->
+| Home Feed | Challenge | Leaderboard | Profile |
+|-----------|-----------|-------------|---------|
+| ![Home](assets/screenshots/home.png) | ![Challenge](assets/screenshots/challenge.png) | ![Leaderboard](assets/screenshots/leaderboard.png) | ![Profile](assets/screenshots/profile.png) |
 
-```bash
-# Node.js — use v20 LTS
-# https://nodejs.org/en/download
+---
 
-# Expo CLI
-npm install -g expo-cli
+## Key Features
 
-# EAS CLI (for builds and submissions)
-npm install -g eas-cli
+- **Weekly Challenges** — New theme every Monday across 6 categories
+- **Full-Screen Video Feed** — Smooth vertical scroll, auto-play, 60fps
+- **Positivity Moderation** — AI + human hybrid, invisible to users
+- **Live Leaderboard** — Real-time vote rankings, updates every 30s
+- **Creator Profiles** — Vybe Score, badges, challenge history
+- **Winner Reveal** — Cinematic Sunday night reveal with confetti
+- **Vybe Coins** — Earn by participating, win by competing
 
-# Supabase CLI (for local DB)
-# macOS:
-brew install supabase/tap/supabase
-# Windows:
-scoop bucket add supabase https://github.com/supabase/scoop-bucket.git
-scoop install supabase
-# Other: https://supabase.com/docs/guides/cli/getting-started
+---
 
-# Docker Desktop — required for local Supabase
-# https://www.docker.com/products/docker-desktop
+## Tech Stack
+
+| Layer | Technology |
+|-------|-----------|
+| Mobile | React Native 0.73 + Expo SDK 50 |
+| Language | TypeScript (strict mode) |
+| Navigation | React Navigation 6 |
+| State | Zustand 4 + TanStack Query v5 |
+| Backend | Supabase (Auth + DB + Realtime + Storage) |
+| Video | Cloudflare Stream (HLS adaptive bitrate) |
+| Moderation | Perspective API + Google Cloud Video Intelligence |
+| Animations | Reanimated 3 + Moti |
+| Camera | react-native-vision-camera 3 |
+| Push | Firebase Cloud Messaging |
+
+---
+
+## Project Structure
+
+```text
+vybe/
+├── src/
+│   ├── navigation/        # Navigator definitions
+│   ├── screens/           # All app screens
+│   │   ├── auth/          # Onboarding, login, signup
+│   │   ├── feed/          # Home feed, video player, comments
+│   │   ├── create/        # Camera, effects, caption, upload
+│   │   ├── leaderboard/   # Rankings and winner history
+│   │   ├── profile/       # User profiles and settings
+│   │   └── misc/          # Notifications, winner reveal, etc.
+│   ├── components/        # Reusable components
+│   │   ├── feed/          # VideoCard, EntryCard
+│   │   ├── ui/            # Design system components
+│   │   ├── profile/       # Avatar, badges, score
+│   │   └── comment/       # Comment bubbles
+│   ├── stores/            # Zustand state stores
+│   ├── api/               # Axios API layer + mock data
+│   ├── hooks/             # Custom React hooks
+│   ├── utils/             # Formatters, validators, helpers
+│   ├── theme/             # Colors, typography, spacing
+│   └── types/             # TypeScript type definitions
+├── assets/                # Fonts, images, animations
+├── supabase/              # Database schema + RLS policies
+├── .env.example           # Environment variable template
+└── app.json               # Expo configuration
 ```
 
-For running on a device/simulator:
-- **iOS**: Xcode (Mac only) — install from the App Store
-- **Android**: Android Studio — install from developer.android.com
-
 ---
 
-## Starting a new project from this template
+## Getting Started
 
-### Step 1 — Copy the template
+### Prerequisites
 
-```bash
-# Option A: Copy the folder directly
-cp -r 8x-rn-template my-new-app
+- Node.js 20 LTS or higher
+- npm 10+ or yarn 1.22+
+- Expo CLI: `npm install -g expo-cli`
+- iOS: Xcode 15+ (Mac only)
+- Android: Android Studio + JDK 17
 
-# Option B: Clone from GitHub
-git clone https://github.com/your-org/8x-rn-template my-new-app
-```
-
-```bash
-cd my-new-app
-
-# Reset git history so the new app starts clean
-rm -rf .git
-git init
-git add .
-git commit -m "feat: initial commit from 8x-rn-template"
-```
-
-### Step 2 — Install dependencies
+### Installation
 
 ```bash
+# Clone the repository
+git clone https://github.com/[your-username]/vybe.git
+cd vybe
+
+# Install dependencies
 npm install
-```
 
-If `npm install` fails with `ERESOLVE`:
-```bash
-rm -rf node_modules package-lock.json
-npm cache clean --force
-npm install
-```
+# Copy environment file
+cp .env.example .env
+# Fill in your values in .env
 
-### Step 3 — Rename the app
-
-Open `app.json` and replace all placeholder values:
-
-```json
-{
-  "expo": {
-    "name": "YourAppName",
-    "slug": "your-app-name",
-    "scheme": "yourapp",
-    "ios": {
-      "bundleIdentifier": "com.yourcompany.yourapp",
-      "associatedDomains": ["applinks:yourdomain.com"]
-    },
-    "android": {
-      "package": "com.yourcompany.yourapp"
-    },
-    "extra": {
-      "eas": { "projectId": "REPLACE_AFTER_EAS_CONFIGURE" }
-    },
-    "owner": "your-expo-username"
-  }
-}
-```
-
-Then open `lib/constants.ts` — this is the single file for all app identity:
-
-```ts
-export const APP_NAME          = 'YourAppName'
-export const APP_TAGLINE       = 'Your tagline here.'
-export const APP_SCHEME        = 'yourapp'          // must match app.json scheme
-export const APP_SUPPORT_EMAIL = 'support@yourapp.com'
-export const APP_DOCS_URL      = 'https://yourapp.com/docs'
-```
-
-### Step 4 — Set your brand color
-
-Open `lib/theme.ts` and change one line:
-
-```ts
-export const ACCENT = '#6366f1'   // change to any hex
-```
-
-Then open `tailwind.config.js` and set the same hex:
-
-```js
-colors: {
-  accent: '#your-hex-color',   // must match lib/theme.ts
-}
-```
-
-Also update the derived opacity values to match:
-```ts
-export const ACCENT_DIM    = 'rgba(r,g,b,0.12)'
-export const ACCENT_BORDER = 'rgba(r,g,b,0.30)'
-export const ACCENT_GLOW   = 'rgba(r,g,b,0.20)'
-export const ACCENT_LIGHT  = '#lighter-variant'
-```
-
-That's the full rebrand — every button, tab, badge, and active state updates.
-
-### Step 5 — Replace app icons
-
-Drop your own images into `assets/`:
-
-| File | Size | Used for |
-|---|---|---|
-| `icon.png` | 1024×1024 | App Store / Play Store icon |
-| `splash-icon.png` | 200×200 | Splash screen centre image |
-| `adaptive-icon.png` | 1024×1024 | Android adaptive icon foreground |
-| `favicon.png` | 32×32 | Web browser tab |
-
-Tip: [appicon.co](https://appicon.co) — upload one 1024×1024 PNG and it exports all required sizes.
-
-### Step 6 — Set up Supabase locally
-
-Start Docker Desktop first, then:
-
-```bash
-supabase start
-supabase db reset   # applies all migrations in supabase/migrations/
-```
-
-When it finishes you'll see:
-```
-API URL: http://127.0.0.1:54321
-anon key: eyJhbGci...
-```
-
-Copy those for the next step.
-
-### Step 7 — Create your .env.local file
-
-```bash
-cp .env.example .env.local
-```
-
-Fill in the values:
-
-```bash
-EXPO_PUBLIC_SUPABASE_URL=http://127.0.0.1:54321
-EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY=sb_publishable_xxx
-
-# Leave empty — these degrade gracefully when unconfigured:
-EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY=
-EXPO_PUBLIC_REVENUECAT_IOS_API_KEY=
-EXPO_PUBLIC_SENTRY_DSN=
-EXPO_PUBLIC_POSTHOG_KEY=
-EXPO_PUBLIC_POSTHOG_HOST=https://us.i.posthog.com
-```
-
-### Step 8 — Run the app
-
-```bash
+# Start the development server
 npx expo start
 ```
 
-- Press `a` → Android emulator
-- Press `i` → iOS simulator (Mac only)
-- Scan QR code → Expo Go on your phone
-
-> RevenueCat requires a native build. For purchase testing: `npx expo run:android` or `npx expo run:ios`.
-
----
-
-## How the app is structured
-
-```
-app/
-  _layout.tsx          Root layout — all providers + auth routing
-  index.tsx            Public landing page
-  upgrade.tsx          Paywall (always accessible)
-  privacy.tsx          Privacy policy placeholder
-  terms.tsx            Terms of service placeholder
-  settings.tsx         Preferences — persisted to AsyncStorage
-  support.tsx          FAQ accordion + contact links
-  (auth)/
-    login.tsx          OTP email + Google/Apple OAuth
-  (onboarding)/
-    index.tsx          Display name capture — runs once after first login
-  (tabs)/
-    _layout.tsx        Tab bar config
-    index.tsx          Home — stats, recent items, activity feed
-    explore.tsx        Search + filter all items
-    activity.tsx       Notifications with read/unread state
-    profile.tsx        Profile, subscription badge, sign out
-  detail/
-    [id].tsx           Item detail — tasks, metrics, status
-
-contexts/
-  SubscriptionContext.tsx   isPremium + purchase/restore/refresh
-  ToastContext.tsx          useToast() — show toasts from anywhere
-
-hooks/
-  useItems.ts          Items list + single item + item tasks
-  useNotifications.ts  User notifications
-  useProfile.ts        Authenticated user profile
-  useActivityFeed.ts   Activity feed (optional item filter)
-
-lib/
-  constants.ts         🏷️ APP_NAME, APP_SCHEME, support contacts — rebrand here
-  theme.ts             🎨 All 59 color tokens — change ACCENT to rebrand
-  typography.ts        Font weight → Inter family name mapping
-  featureFlags.ts      useFeatureFlag() backed by PostHog
-  queryClient.ts       TanStack Query client with retry + stale config
-  supabase.ts          Supabase client (reads from env vars)
-  purchases.ts         RevenueCat helpers
-  analytics.ts         PostHog wrapper with typed event names
-  mockData.ts          Placeholder data — used as placeholderData in hooks
-  utils.ts             getInitials, formatDate, adjustBrightness, clamp, etc.
-  i18n.ts              i18next init + language switching
-
-components/
-  ui/
-    Text.tsx           RN Text with Inter auto-applied + Android fontWeight fix
-    Button.tsx         primary / secondary / outline / ghost / destructive
-    Card.tsx           Generic surface card
-    AppModal.tsx       AlertModal (bottom sheet) + ActionSheet
-    StatusBadge.tsx    Status pill — active / pending / archived
-    SettingsRow.tsx    Icon + label row for settings/profile lists
-    TextInputField.tsx Styled text input with optional label + error
-  TabBar.tsx           Custom animated bottom tab bar
-  OfflineBanner.tsx    Slides down mid-session on disconnect
-  OfflineOverlay.tsx   Full-screen block when app launches offline
-
-supabase/
-  migrations/
-    *_init.sql               profiles table + RLS + auto-create trigger
-    *_app_domain.sql         items, tasks, notifications, activity_feed + RLS
-  functions/
-    revenuecat-webhook/      Syncs plan_type on subscription events
-
-__tests__/
-  utils.test.ts        14 utility function tests
-
-.github/
-  workflows/
-    ci.yml             typecheck + test on every push and PR
-```
-
----
-
-## How auth routing works
-
-```
-isAuthed = false
-  → landing page + login
-
-isAuthed = true, onboarding not done
-  → onboarding screen
-
-isAuthed = true, onboarding done
-  → tabs + all authenticated screens
-```
-
-Handled by `Stack.Protected` in `_layout.tsx` — no manual navigation needed. Auth state comes from Supabase session; onboarding state from `user.user_metadata.onboarding_completed`.
-
----
-
-## How data fetching works
-
-Every screen uses a TanStack Query hook. The hooks return `placeholderData` from `lib/mockData.ts` while the real Supabase query loads — so screens never flash empty.
-
-```ts
-// hooks/useItems.ts pattern:
-export function useItems() {
-  return useQuery({
-    queryKey: ['items'],
-    queryFn: () => supabase.from('items').select('*'),
-    placeholderData: mockItems,   // instant content while loading
-  })
-}
-```
-
-Pull-to-refresh invalidates the relevant query keys:
-```ts
-await queryClient.invalidateQueries({ queryKey: ['items'] })
-```
-
----
-
-## How to add features
-
-### Add a new tab
-
-1. Create `app/(tabs)/newscreen.tsx`
-2. Add to `app/(tabs)/_layout.tsx`:
-
-```tsx
-<Tabs.Screen name="newscreen" options={{ tabBarLabel: 'Label', tabBarIcon: ... }} />
-```
-
-### Add a new authenticated screen
-
-1. Create `app/myscreen.tsx`
-2. Register in the authenticated `Stack.Protected` block in `app/_layout.tsx`
-3. Navigate: `router.push('/myscreen')`
-
-### Gate content behind subscription
-
-```tsx
-const { isPremium } = useSubscription()
-
-if (!isPremium) return router.replace('/upgrade')
-```
-
-### Add a Supabase data hook
-
-```ts
-export function useMyData() {
-  return useQuery({
-    queryKey: ['my_data'],
-    queryFn: async () => {
-      const { data } = await supabase.from('my_table').select('*')
-      return data ?? []
-    },
-    placeholderData: [],
-  })
-}
-```
-
-### Add a typed analytics event
-
-Open `lib/analytics.ts`, add to `EventName`:
-```ts
-| 'your_event_name'
-```
-
-Then call it:
-```ts
-track('your_event_name', { property: 'value' })
-```
-
-### Show a toast
-
-```tsx
-const { showToast } = useToast()
-showToast('Saved successfully', 'success')
-showToast('Something went wrong', 'error')
-```
-
-### Use a feature flag
-
-```tsx
-import { useFeatureFlag } from '@/lib/featureFlags'
-
-const showNewUI = useFeatureFlag('new_ui', false)
-```
-
----
-
-## RevenueCat setup
-
-1. Create products in App Store Connect + Google Play Console
-2. Go to [app.revenuecat.com](https://app.revenuecat.com) → create project
-3. Create an entitlement called `premium`, attach your products
-4. Create a `default` offering with monthly + yearly packages
-5. Get your API keys → add to `eas.json` and `.env.local`:
-```bash
-EXPO_PUBLIC_REVENUECAT_IOS_API_KEY=appl_xxxx
-EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY=goog_xxxx
-```
-
-If your entitlement name differs from `premium`, update `lib/purchases.ts`:
-```ts
-export const ENTITLEMENT_ID = 'your_entitlement_name'
-```
-
----
-
-## Deploying Supabase to production
+### Running on Device
 
 ```bash
-# Link to your remote project
-supabase link --project-ref your-project-ref
+# iOS Simulator
+npx expo run:ios
 
-# Push all migrations
-supabase db push
+# Android Emulator
+npx expo run:android
+
+# Physical device (Expo Go)
+npx expo start --tunnel
 ```
 
-Add production credentials to `eas.json`:
-```json
-"EXPO_PUBLIC_SUPABASE_URL": "https://xxxx.supabase.co",
-"EXPO_PUBLIC_SUPABASE_PUBLISHABLE_KEY": "sb_publishable_xxx"
-```
+### Environment Setup
 
-Enable email auth: Supabase dashboard → Authentication → Providers → Email.
+Copy `.env.example` to `.env` and fill in:
+
+1. **Supabase** — Create a project at [supabase.com](https://supabase.com)
+   and run `supabase/schema.sql` in the SQL editor
+2. **Cloudflare Stream** — or substitute with [Mux](https://mux.com)
+   for video delivery
+3. **Firebase** — Create a project for push notifications
+4. **Perspective API** — Server-side only, for comment moderation
 
 ---
 
-## Building for the stores
+## Moderation System
+
+Vybe uses a 5-layer moderation pipeline:
+
+```text
+User submits content
+↓
+Layer 1: On-device ML pre-screen (nudity, violence)
+↓
+Layer 2: Server AI (video + speech-to-text + caption analysis)
+↓
+Layer 3: Auto-approve / Flag for human review / Auto-reject
+↓
+Layer 4: Community reports (3 reports → auto-hide pending review)
+↓
+Layer 5: Strike system (warn → voting ban → submission ban)
+```
+
+Comments are filtered in real-time via Perspective API before
+display. Blocked comments are silently dropped with a soft nudge
+to the user. No shaming. No harsh error messages.
+
+---
+
+## Database Schema
+
+The Supabase schema is in `supabase/schema.sql`. Tables:
+
+- `users` — Creator profiles and account data
+- `challenges` — Weekly challenge definitions
+- `entries` — Submitted video entries
+- `votes` — One vote per user per entry (unique constraint)
+- `comments` — Moderated comment threads
+- `reactions` — Emoji reactions on entries
+- `notifications` — Per-user notification feed
+- `follows` — Creator follow relationships
+- `strikes` — Moderation strike records
+
+Row Level Security is enabled on all tables.
+
+---
+
+## Vybe Score
+
+Creator reputation is calculated as:
+
+```text
+Vybe Score = (total votes × 1) + (challenge wins × 100) + (entries × 5)
+```
+
+| Score | Tier |
+|-------|------|
+| 0 – 99 | New Vybe |
+| 100 – 499 | Rising Star |
+| 500 – 1,999 | Hot Vybe |
+| 2,000+ | Vybe Legend |
+
+---
+
+## Scripts
 
 ```bash
-# First time only
-eas login
-eas build:configure
-
-# Test build (Android APK)
-eas build --platform android --profile preview
-
-# Production
-eas build --platform all --profile production
-
-# Submit
-eas submit --platform android
-eas submit --platform ios
+npm start              # Start Expo development server
+npm run ios            # Run on iOS simulator
+npm run android        # Run on Android emulator
+npm run type-check     # Run TypeScript compiler check
+npm run lint           # Run ESLint
+npm test               # Run Jest test suite
+npm run build:ios      # EAS build for iOS
+npm run build:android  # EAS build for Android
 ```
 
 ---
 
-## Checklist before shipping
+## Contributing
 
-### Identity
-- [ ] `app.json` — `name`, `slug`, `scheme`, `bundleIdentifier`, `package`, `projectId`, `owner`
-- [ ] `lib/constants.ts` — `APP_NAME`, `APP_TAGLINE`, `APP_SCHEME`, `APP_SUPPORT_EMAIL`, `APP_DOCS_URL`
-- [ ] `assets/icon.png` replaced (1024×1024)
-- [ ] `assets/splash-icon.png` replaced
-- [ ] `assets/adaptive-icon.png` replaced (Android)
-
-### Branding
-- [ ] `lib/theme.ts` — `ACCENT` + derived opacity values
-- [ ] `tailwind.config.js` — `accent` matches `ACCENT`
-- [ ] `app/upgrade.tsx` — `PRO_FEATURES` list updated
-
-### Legal
-- [ ] Real privacy policy in `app/privacy.tsx`
-- [ ] Real terms of service in `app/terms.tsx`
-
-### Backend
-- [ ] Supabase production project created + `supabase db push` run
-- [ ] Production Supabase URL + key in `eas.json` production env
-- [ ] Email auth enabled in Supabase dashboard
-
-### Subscriptions
-- [ ] Products created in App Store Connect + Google Play Console
-- [ ] RevenueCat project set up, `premium` entitlement + default offering created
-- [ ] RevenueCat API keys in `eas.json`
-- [ ] Tested purchase + restore on a real device
-
-### Observability
-- [ ] Sentry DSN in `eas.json` (+ `app.json` plugin `project` + `organization`)
-- [ ] PostHog API key in `eas.json`
-
-### Sentry config
-- [ ] `app.json` Sentry plugin — `project` + `organization` set to your Sentry values
-
-### Final
-- [ ] `npm run typecheck` — 0 errors
-- [ ] `npm test` — all tests passing
-- [ ] Full flow tested: landing → login → onboarding → home → profile → upgrade → sign out
+This project is a competition submission. For the competition
+period, contributions are from the core team only.
 
 ---
 
-## Common issues
+## License
 
-**`supabase start` fails**
-Make sure Docker Desktop is running. Try `supabase stop` then `supabase start`.
+MIT License — see [LICENSE](LICENSE) for details.
 
-**RevenueCat not working in Expo Go**
-Expected — RevenueCat requires native. Use `npx expo run:android` / `npx expo run:ios`.
+---
 
-**App shows blank screen on launch**
-Check `.env.local` has a valid `EXPO_PUBLIC_SUPABASE_URL` and key, and `supabase start` is running.
-
-**TypeScript errors after changes**
-```bash
-npm run typecheck
-```
+<div align="center">
+Built with ❤️ for the Coverstar Clone Challenge
+</div>

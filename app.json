@@ -1,10 +1,10 @@
 {
   "expo": {
-    "name": "MyApp",
-    "slug": "my-app",
+    "name": "Vybe",
+    "slug": "vybe",
     "version": "1.0.0",
     "orientation": "portrait",
-    "scheme": "myapp",
+    "scheme": "vybeapp",
     "icon": "./assets/icon.png",
     "userInterfaceStyle": "dark",
     "splash": {
@@ -14,34 +14,39 @@
     },
     "ios": {
       "supportsTablet": false,
-      "bundleIdentifier": "com.yourcompany.myapp",
+      "bundleIdentifier": "app.vybe.mobile",
+      "infoPlist": {
+        "NSCameraUsageDescription": "Record your challenge entry",
+        "NSMicrophoneUsageDescription": "Record audio for your Vybe entry",
+        "NSPhotoLibraryUsageDescription": "Pick a video from your gallery",
+        "NSPhotoLibraryAddUsageDescription": "Save your Vybe to your camera roll",
+        "NSAppTransportSecurity": {
+          "NSAllowsArbitraryLoads": false
+        }
+      },
       "associatedDomains": [
-        "applinks:REPLACE_WITH_YOUR_DOMAIN"
+        "applinks:vybe.app"
       ]
     },
     "android": {
-      "package": "com.yourcompany.myapp",
+      "package": "app.vybe.mobile",
       "adaptiveIcon": {
         "foregroundImage": "./assets/icon.png",
         "backgroundColor": "#0d0d0d"
       },
       "permissions": [
         "android.permission.CAMERA",
-        "android.permission.READ_EXTERNAL_STORAGE",
-        "android.permission.WRITE_EXTERNAL_STORAGE"
+        "android.permission.RECORD_AUDIO",
+        "android.permission.READ_MEDIA_VIDEO"
       ],
-      "androidStatusBar": {
-        "barStyle": "light-content",
-        "backgroundColor": "#0d0d0d",
-        "translucent": true
-      },
       "predictiveBackGestureEnabled": false,
       "intentFilters": [
         {
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "myapp" }
+            { "scheme": "vybeapp" },
+            { "scheme": "https", "host": "vybe.app" }
           ],
           "category": ["BROWSABLE", "DEFAULT"]
         }
@@ -49,6 +54,11 @@
     },
     "web": {
       "favicon": "./assets/icon.png"
+    },
+    "androidStatusBar": {
+      "barStyle": "light-content",
+      "backgroundColor": "#0d0d0d",
+      "translucent": true
     },
     "plugins": [
       "expo-router",
@@ -75,6 +85,7 @@
       "@sentry/react-native"
     ],
     "extra": {
+      "EXPO_PUBLIC_API_URL": "https://api.vybe.app",
       "router": {},
       "eas": {
         "projectId": "REPLACE_WITH_YOUR_EAS_PROJECT_ID"

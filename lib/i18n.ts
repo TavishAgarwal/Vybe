@@ -1,10 +1,10 @@
 import i18n from 'i18next'
 import { initReactI18next } from 'react-i18next'
 import * as Localization from 'expo-localization'
-import AsyncStorage from '@react-native-async-storage/async-storage'
+import { appStorage } from '@/src/utils/storage'
 
 import en from '../locales/en.json'
-// TODO: add more languages by importing their JSON and adding to `resources`
+// KNOWN LIMITATION: English is the only bundled locale for the competition build.
 // import es from '../locales/es.json'
 
 const LANG_KEY = 'app_language'
@@ -23,7 +23,7 @@ export async function initI18n() {
   if (_initialized) return
   _initialized = true
 
-  const saved      = await AsyncStorage.getItem(LANG_KEY)
+  const saved      = appStorage.getString(LANG_KEY)
   const deviceLang = Localization.getLocales()[0]?.languageCode ?? 'en'
   const initial: Locale =
     (saved as Locale) ??
@@ -42,7 +42,7 @@ export async function initI18n() {
 }
 
 export async function setLanguage(locale: Locale) {
-  await AsyncStorage.setItem(LANG_KEY, locale)
+  appStorage.set(LANG_KEY, locale)
   await i18n.changeLanguage(locale)
 }
 

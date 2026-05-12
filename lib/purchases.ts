@@ -6,13 +6,15 @@ import Purchases, {
   PurchasesOfferings,
   PurchasesPackage,
 } from 'react-native-purchases'
+import { getEnv } from '@/src/utils/env'
+import { logger } from '@/src/utils/logger'
 
 // RevenueCat requires native store APIs — not available in Expo Go.
 // When using Expo Go for development, purchases will be skipped.
 const IS_EXPO_GO = Constants.appOwnership === 'expo'
 
-const ANDROID_API_KEY = process.env.EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY ?? ''
-const IOS_API_KEY     = process.env.EXPO_PUBLIC_REVENUECAT_IOS_API_KEY ?? ''
+const ANDROID_API_KEY = getEnv('EXPO_PUBLIC_REVENUECAT_ANDROID_API_KEY')
+const IOS_API_KEY     = getEnv('EXPO_PUBLIC_REVENUECAT_IOS_API_KEY')
 
 // 🔑 REVENUECAT: Set your entitlement identifier to match your RC dashboard.
 // Default is 'premium'. Create this entitlement in RevenueCat → Entitlements.
@@ -22,7 +24,7 @@ export function configureRevenueCat() {
   if (IS_EXPO_GO) return
   const apiKey = Platform.OS === 'ios' ? IOS_API_KEY : ANDROID_API_KEY
   if (!apiKey || apiKey.startsWith('REPLACE_')) {
-    console.warn(
+    logger.warn(
       '[RevenueCat] API key not set. Add EXPO_PUBLIC_REVENUECAT_*_API_KEY to your env.'
     )
     return
@@ -37,7 +39,7 @@ export async function loginRevenueCat(userId: string) {
   try {
     await Purchases.logIn(userId)
   } catch (e) {
-    console.warn('[RevenueCat] logIn error:', e)
+    logger.warn('[RevenueCat] logIn error', e)
   }
 }
 
@@ -47,7 +49,7 @@ export async function logoutRevenueCat() {
   try {
     await Purchases.logOut()
   } catch (e) {
-    console.warn('[RevenueCat] logOut error:', e)
+    logger.warn('[RevenueCat] logOut error', e)
   }
 }
 
@@ -62,7 +64,7 @@ export async function fetchOfferings(): Promise<PurchasesOfferings | null> {
   try {
     return await Purchases.getOfferings()
   } catch (e) {
-    console.warn('[RevenueCat] getOfferings error:', e)
+    logger.warn('[RevenueCat] getOfferings error', e)
     return null
   }
 }
@@ -72,7 +74,7 @@ export async function fetchCustomerInfo(): Promise<CustomerInfo | null> {
   try {
     return await Purchases.getCustomerInfo()
   } catch (e) {
-    console.warn('[RevenueCat] getCustomerInfo error:', e)
+    logger.warn('[RevenueCat] getCustomerInfo error', e)
     return null
   }
 }

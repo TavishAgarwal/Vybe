@@ -3,17 +3,18 @@ import { View, ScrollView, StyleSheet, Pressable, Switch } from 'react-native'
 import { router } from 'expo-router'
 import { useSafeAreaInsets } from 'react-native-safe-area-context'
 import { Ionicons } from '@expo/vector-icons'
-import AsyncStorage from '@react-native-async-storage/async-storage'
 import { Text } from '@/components/ui/Text'
 import { Card } from '@/components/ui/Card'
 import SettingsRow from '@/components/ui/SettingsRow'
 import { BG, BORDER, TEXT_PRIMARY, TEXT_SECONDARY, TEXT_TERTIARY, ACCENT } from '@/lib/theme'
+import { useSensitiveScreenBlur } from '@/src/hooks/useSensitiveScreenBlur'
+import { appStorage } from '@/src/utils/storage'
 
 const SETTINGS_KEY = 'app_settings'
 
 async function loadSettings() {
     try {
-        const raw = await AsyncStorage.getItem(SETTINGS_KEY)
+        const raw = appStorage.getString(SETTINGS_KEY)
         return raw ? JSON.parse(raw) : null
     } catch {
         return null
@@ -22,12 +23,13 @@ async function loadSettings() {
 
 async function saveSettings(settings: { pushEnabled: boolean; weeklyDigest: boolean; compactMode: boolean }) {
     try {
-        await AsyncStorage.setItem(SETTINGS_KEY, JSON.stringify(settings))
+        appStorage.set(SETTINGS_KEY, JSON.stringify(settings))
     } catch { /* non-critical */ }
 }
 
 export default function SettingsScreen() {
     const insets = useSafeAreaInsets()
+    const shouldBlur = useSensitiveScreenBlur()
 
     const [pushEnabled, setPushEnabled] = useState(true)
     const [weeklyDigest, setWeeklyDigest] = useState(true)
@@ -93,6 +95,7 @@ export default function SettingsScreen() {
                     <SettingsRow label="Terms of Service" icon="shield-checkmark-outline" onPress={() => router.push('/terms')} last={true} />
                 </Card>
             </ScrollView>
+            {shouldBlur ? <View style={s.privacyOverlay} /> : null}
         </View>
     )
 }
@@ -160,4 +163,8 @@ const s = StyleSheet.create({
     },
     rowLabel: { color: TEXT_PRIMARY, fontSize: 14.5, fontWeight: '600' },
     rowSub: { color: TEXT_SECONDARY, fontSize: 12, marginTop: 2 },
+    privacyOverlay: {
+        ...StyleSheet.absoluteFillObject,
+        backgroundColor: BG,
+    },
 })

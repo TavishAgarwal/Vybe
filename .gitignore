@@ -1,20 +1,136 @@
+# Environment & Secrets — NEVER commit these
+.env
+.env.local
+.env.development
+.env.staging
+.env.production
+.env.test
+*.env
+.envrc
+secrets.json
+secrets.ts
+secrets.js
+google-services.json
+GoogleService-Info.plist
+
+# Node
 node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+.npm
+.yarn/cache
+.yarn/unplugged
+.yarn/build-state.yml
+.yarn/install-state.gz
+.pnp.*
+
+# Expo
 .expo/
+.expo-shared/
 dist/
 web-build/
-.env.local
-.env.*.local
-*.orig.*
+expo-env.d.ts
+
+# Native builds
 ios/
 android/
+*.orig.*
 *.jks
 *.p8
 *.p12
 *.key
 *.mobileprovision
 *.orig.*
-web-build/
+
+# Metro
+.metro-health-check*
+
+# TypeScript
+*.tsbuildinfo
+
+# Build output
+build/
+out/
+.next/
+.nuxt/
+
+# Testing
+coverage/
+.nyc_output/
+*.lcov
+jest-results/
+test-results/
+
+# IDE & Editor
+.vscode/
+!.vscode/extensions.json
+!.vscode/settings.json
+.idea/
+*.swp
+*.swo
+*~
 .DS_Store
-npm-debug.*
-yarn-debug.*
-yarn-error.*
+.DS_Store?
+._*
+.Spotlight-V100
+.Trashes
+ehthumbs.db
+Thumbs.db
+desktop.ini
+
+# OS generated
+.AppleDouble
+.LSOverride
+Icon?
+!assets/icons/
+!assets/icons/.gitkeep
+.DocumentRevisions-V100
+.fseventsd
+.TemporaryItems
+.VolumeIcon.icns
+.com.apple.timemachine.donotpresent
+Network Trash Folder
+Temporary Items
+
+# Logs
+logs/
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+lerna-debug.log*
+
+# Cache
+.cache/
+.parcel-cache/
+*.cache
+
+# Temporary files
+tmp/
+temp/
+*.tmp
+*.temp
+
+# Video cache (local dev only)
+assets/video-cache/
+*.mp4
+*.mov
+*.avi
+*.mkv
+
+# Large asset files (should use Git LFS or CDN)
+assets/fonts/*.ttf
+assets/fonts/*.otf
+!assets/fonts/.gitkeep
+
+# Supabase local
+.supabase/
+supabase/.branches/
+supabase/.temp/
+
+# EAS Build
+.eas/
+
+# Local assistant/debug artifacts
+.claude-logs/
