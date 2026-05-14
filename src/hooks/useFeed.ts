@@ -38,8 +38,9 @@ export const useFeed = (challengeId: string) => {
       return;
     }
 
+    const uniqueId = Math.random().toString(36).substring(7);
     const channel = supabase
-      .channel(`votes:${challengeId}`)
+      .channel(`votes:${challengeId}:${uniqueId}`)
       .on(
         'postgres_changes',
         {
@@ -109,8 +110,9 @@ export const useFeed = (challengeId: string) => {
       return;
     }
 
+    const uniqueId = Math.random().toString(36).substring(7);
     const channel = supabase
-      .channel(`entries:${challengeId}`)
+      .channel(`entries:${challengeId}:${uniqueId}`)
       .on(
         'postgres_changes',
         {
