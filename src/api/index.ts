@@ -47,79 +47,93 @@ const mapEntry = (dbEntry: DbEntry): Entry => ({
   user: dbEntry.user ? mapUser(dbEntry.user) : undefined,
 });
 
+const MOCK_CHALLENGES: Challenge[] = [
+  { id: 'c1', title: 'Acoustic Covers', description: 'Show us your best unplugged cover of a pop song.', category: 'music', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/1648178/pexels-photo-1648178.jpeg', promptText: 'Acoustic Cover', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c2', title: 'Street Dance Battle', description: 'Drop your best 15-second street dance choreo.', category: 'dance', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/1701198/pexels-photo-1701198.jpeg', promptText: 'Street Dance', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c3', title: 'Standup in 30s', description: 'Deliver your best punchline in under 30 seconds.', category: 'comedy', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/713149/pexels-photo-713149.jpeg', promptText: 'Standup', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c4', title: 'Quick Sketch', description: 'Draw a portrait in under 1 minute. No edits!', category: 'art', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/1047540/pexels-photo-1047540.jpeg', promptText: 'Sketch', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c5', title: 'Trick Shot', description: 'Any sport. Any ball. Make the impossible shot.', category: 'sports', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/3628912/pexels-photo-3628912.jpeg', promptText: 'Trick Shot', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c6', title: 'Clutch Moments', description: 'Post your best gaming clutch or 1vX moment.', category: 'gaming', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/3165335/pexels-photo-3165335.jpeg', promptText: 'Gaming Clutch', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c7', title: '5-Ingredient Meal', description: 'Cook something amazing with only 5 ingredients.', category: 'cooking', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/1267320/pexels-photo-1267320.jpeg', promptText: '5-Ingredient Meal', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c8', title: 'Thrift Flips', description: 'Turn thrifted clothes into high fashion.', category: 'fashion', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/934070/pexels-photo-934070.jpeg', promptText: 'Thrift Flip', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c9', title: 'Bodyweight PR', description: 'Show us your hardest calisthenics or bodyweight move.', category: 'fitness', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/1552242/pexels-photo-1552242.jpeg', promptText: 'Bodyweight PR', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c10', title: 'Room Transformation', description: 'Show the before and after of your DIY room makeover.', category: 'diy', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/3052651/pexels-photo-3052651.jpeg', promptText: 'Room Makeover', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c11', title: 'Funny Pet Habits', description: 'What is the weirdest thing your pet does?', category: 'pets', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/1108099/pexels-photo-1108099.jpeg', promptText: 'Funny Pets', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+  { id: 'c12', title: 'Hidden Gems', description: 'Share a beautiful, unknown spot in your city.', category: 'travel', weekNumber: 1, year: 2026, startDate: '2026-05-14T00:00:00Z', endDate: '2026-05-21T00:00:00Z', revealDate: '2026-05-21T00:00:00Z', coverImageUrl: 'https://images.pexels.com/photos/2087391/pexels-photo-2087391.jpeg', promptText: 'Hidden Gems', status: 'active', winnerId: null, runnerUp1Id: null, runnerUp2Id: null },
+];
+
 export const challengesApi = {
   getActive: async () => {
-    const response = await supabase
-      .from('challenges')
-      .select('*')
-      .eq('status', 'active')
-      .order('ends_at', { ascending: true })
-      .limit(1)
-      .single();
-    const data = response.data as DbChallenge | null;
-    const error = response.error;
+    try {
+      const response = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('status', 'active')
+        .order('ends_at', { ascending: true })
+        .limit(1)
+        .single();
+      const data = response.data as DbChallenge | null;
 
-    if (error && error.code !== 'PGRST116') {
-      throw error;
-    } // ignore no rows
-
-    if (!data) {
-      return { data: null };
+      if (data) {
+        return {
+          data: {
+            id: data.id,
+            title: data.title,
+            description: data.description,
+            category: (data.category || 'general') as Challenge['category'],
+            weekNumber: 1,
+            year: 2026,
+            startDate: data.created_at,
+            endDate: data.ends_at,
+            revealDate: data.ends_at,
+            coverImageUrl: 'https://picsum.photos/seed/challenge/800/400',
+            promptText: data.description,
+            status: data.status as Challenge['status'],
+            winnerId: null,
+            runnerUp1Id: null,
+            runnerUp2Id: null,
+          } satisfies Challenge,
+        };
+      }
+    } catch (error) {
+      // ignore
     }
-
-    return {
-      data: {
-        id: data.id,
-        title: data.title,
-        description: data.description,
-        category: (data.category || 'general') as Challenge['category'],
-        weekNumber: 1,
-        year: 2026,
-        startDate: data.created_at,
-        endDate: data.ends_at,
-        revealDate: data.ends_at,
-        coverImageUrl: 'https://picsum.photos/seed/challenge/800/400',
-        promptText: data.description,
-        status: data.status as Challenge['status'],
-        winnerId: null,
-        runnerUp1Id: null,
-        runnerUp2Id: null,
-      } satisfies Challenge,
-    };
+    return { data: MOCK_CHALLENGES[0] };
   },
 
   getAll: async () => {
-    const response = await supabase
-      .from('challenges')
-      .select('*')
-      .eq('status', 'active')
-      .order('ends_at', { ascending: true });
-    const data = (response.data ?? []) as DbChallenge[];
-    const error = response.error;
+    try {
+      const response = await supabase
+        .from('challenges')
+        .select('*')
+        .eq('status', 'active')
+        .order('ends_at', { ascending: true });
+      const data = (response.data ?? []) as DbChallenge[];
 
-    if (error) {
-      throw error;
+      if (data.length > 0) {
+        const challenges: Challenge[] = data.map(row => ({
+          id: row.id,
+          title: row.title,
+          description: row.description,
+          category: (row.category || 'general') as Challenge['category'],
+          weekNumber: 1,
+          year: 2026,
+          startDate: row.created_at,
+          endDate: row.ends_at,
+          revealDate: row.ends_at,
+          coverImageUrl: `https://picsum.photos/seed/${row.id}/800/400`,
+          promptText: row.description,
+          status: row.status as Challenge['status'],
+          winnerId: null,
+          runnerUp1Id: null,
+          runnerUp2Id: null,
+        }));
+        return { data: challenges };
+      }
+    } catch (error) {
+      // ignore
     }
-
-    const challenges: Challenge[] = data.map(row => ({
-      id: row.id,
-      title: row.title,
-      description: row.description,
-      category: (row.category || 'general') as Challenge['category'],
-      weekNumber: 1,
-      year: 2026,
-      startDate: row.created_at,
-      endDate: row.ends_at,
-      revealDate: row.ends_at,
-      coverImageUrl: `https://picsum.photos/seed/${row.id}/800/400`,
-      promptText: row.description,
-      status: row.status as Challenge['status'],
-      winnerId: null,
-      runnerUp1Id: null,
-      runnerUp2Id: null,
-    }));
-
-    return { data: challenges };
+    return { data: MOCK_CHALLENGES };
   },
 };
 
