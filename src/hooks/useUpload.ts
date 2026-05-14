@@ -94,17 +94,16 @@ export const useUpload = () => {
       const { mimeType, extension } = await validateVideo(options);
       safeSet(setUploadProgress, 0.1);
 
-      // Read file as base64 for Supabase Storage upload
-      const base64Data = await FileSystem.readAsStringAsync(options.videoUri, {
-        encoding: FileSystem.EncodingType.Base64,
-      });
+      // Convert local file URI to Blob for Supabase upload
+      const response = await fetch(options.videoUri);
+      const blob = await response.blob();
       safeSet(setUploadProgress, 0.3);
 
       // Upload to Supabase Storage
       const fileName = `${user.id}/${Date.now()}.${extension}`;
       const { error: storageError } = await supabase.storage
         .from('videos')
-        .upload(fileName, decode(base64Data), {
+        .upload(fileName, blob, {
           contentType: mimeType,
           upsert: false,
         });
@@ -156,13 +155,3 @@ export const useUpload = () => {
 
   return { uploadVideo, isUploading, uploadProgress, error };
 };
-
-// Decode base64 string to Uint8Array for Supabase Storage
-function decode(base64: string): Uint8Array {
-  const binaryString = atob(base64);
-  const bytes = new Uint8Array(binaryString.length);
-  for (let i = 0; i < binaryString.length; i++) {
-    bytes[i] = binaryString.charCodeAt(i);
-  }
-  return bytes;
-}
