@@ -36,6 +36,10 @@ const validateVideo = async (options: UploadOptions) => {
     options.videoUri.split('?')[0]?.split('.').pop()?.toLowerCase() ?? '';
   const mimeType = inferVideoMime(options.videoUri);
 
+  if (options.videoUri.startsWith('http')) {
+    return { size: 0, mimeType, extension };
+  }
+
   if (!ACCEPTED_VIDEO_EXTENSIONS.has(extension)) {
     throw new Error('Upload a valid MP4 or MOV video.');
   }
@@ -94,32 +98,37 @@ export const useUpload = () => {
       const { mimeType, extension } = await validateVideo(options);
       safeSet(setUploadProgress, 0.1);
 
-      // Use FormData which is the most reliable way to upload files in React Native
-      const formData = new FormData();
-      formData.append('file', {
-        uri: options.videoUri,
-        name: `video.${extension}`,
-        type: mimeType,
-      } as any);
+      let videoUrl = options.videoUri;
 
-      safeSet(setUploadProgress, 0.3);
+      if (!options.videoUri.startsWith('http')) {
+        // Use FormData which is the most reliable way to upload files in React Native
+        const formData = new FormData();
+        formData.append('file', {
+          uri: options.videoUri,
+          name: `video.${extension}`,
+          type: mimeType,
+        } as any);
 
-      // Upload to Supabase Storage
-      const fileName = `${user.id}/${Date.now()}.${extension}`;
-      const { error: storageError } = await supabase.storage
-        .from('videos')
-        .upload(fileName, formData);
+        safeSet(setUploadProgress, 0.3);
 
-      if (storageError) {
-        throw new Error(`Storage upload failed: ${storageError.message}`);
+        // Upload to Supabase Storage
+        const fileName = `${user.id}/${Date.now()}.${extension}`;
+        const { error: storageError } = await supabase.storage
+          .from('videos')
+          .upload(fileName, formData);
+
+        if (storageError) {
+          throw new Error(`Storage upload failed: ${storageError.message}`);
+        }
+        safeSet(setUploadProgress, 0.7);
+
+        // Get public URL for the uploaded video
+        const { data: publicUrlData } = supabase.storage
+          .from('videos')
+          .getPublicUrl(fileName);
+        videoUrl = publicUrlData.publicUrl;
       }
-      safeSet(setUploadProgress, 0.7);
-
-      // Get public URL for the uploaded video
-      const { data: publicUrlData } = supabase.storage
-        .from('videos')
-        .getPublicUrl(fileName);
-      const videoUrl = publicUrlData.publicUrl;
+      
       safeSet(setUploadProgress, 0.8);
 
       // Create the entry in the database
@@ -138,17 +147,21 @@ export const useUpload = () => {
       safeSet(setIsUploading, false);
 
       // Clean up local file
-      await FileSystem.deleteAsync(options.videoUri, { idempotent: true }).catch(
-        () => undefined,
-      );
+      if (!options.videoUri.startsWith('http')) {
+        await FileSystem.deleteAsync(options.videoUri, { idempotent: true }).catch(
+          () => undefined,
+        );
+      }
 
       return entryResult.data as unknown as Entry;
     } catch (err: unknown) {
       const uploadError = err instanceof Error ? err : new Error(String(err));
       logger.warn('Video upload failed', { message: uploadError.message });
-      await FileSystem.deleteAsync(options.videoUri, {
-        idempotent: true,
-      }).catch(() => undefined);
+      if (!options.videoUri.startsWith('http')) {
+        await FileSystem.deleteAsync(options.videoUri, {
+          idempotent: true,
+        }).catch(() => undefined);
+      }
       safeSet(setError, uploadError);
       safeSet(setIsUploading, false);
       throw uploadError;
