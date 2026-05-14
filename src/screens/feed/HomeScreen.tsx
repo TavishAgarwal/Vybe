@@ -1,17 +1,16 @@
-import React, { useState, useCallback, useMemo, useRef } from 'react';
+import React, { useState, useCallback, useMemo, useEffect, useRef } from 'react';
 import {
   StyleSheet, View, FlatList, Dimensions, ActivityIndicator,
   ViewToken, RefreshControl, Text, Share, Platform, Image,
-  TouchableOpacity,
+  TouchableOpacity, Animated,
 } from 'react-native';
-import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { useFeed, useActiveChallenge } from '../../hooks';
 import { useFeedStore } from '../../stores/feedStore';
 import { CommentSheet } from '../../components';
 import { colors, spacing, typography } from '../../theme';
 import { Pill } from '../../components/ui';
 import { Entry, User } from '../../types/models';
-import { Heart, MessageCircle, Share2 } from 'lucide-react-native';
+import { Heart, MessageCircle, Share2, Play } from 'lucide-react-native';
 import { useBottomTabBarHeight } from '@react-navigation/bottom-tabs';
 
 const { width: SW, height: SH } = Dimensions.get('window');
@@ -104,25 +103,13 @@ const FEED = [
 const imgUrl = (id: number) =>
   `https://images.pexels.com/photos/${id}/pexels-photo-${id}.jpeg?auto=compress&w=800&h=1400&fit=crop`;
 
-/* Google's public sample videos — guaranteed accessible, no auth needed */
-const VIDS = [
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerBlazes.mp4',
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerEscapes.mp4',
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerFun.mp4',
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerJoyrides.mp4',
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/ForBiggerMeltdowns.mp4',
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/SubaruOutbackOnStreetAndDirt.mp4',
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/TearsOfSteel.mp4',
-  'https://storage.googleapis.com/gtv-videos-bucket/sample/VolkswagenGTIReview.mp4',
-];
-
 const DEMO: Entry[] = U.map((user, i) => {
   const d = FEED[i % FEED.length];
   return {
     id: `demo-${i}`,
     challengeId: 'demo-c',
     userId: user.id,
-    videoUrl: VIDS[i % VIDS.length],
+    videoUrl: imgUrl(d.img),
     thumbnailUrl: imgUrl(d.img),
     caption: d.cap,
     duration: 15 + (i % 45),
@@ -134,29 +121,35 @@ const DEMO: Entry[] = U.map((user, i) => {
   };
 });
 
-/* Only one video player at a time — mounts for active cell, unmounts for others */
-const ActiveVideo = ({ uri }: { uri: string }) => {
-  const videoRef = useRef<Video>(null);
-  const [isLoaded, setIsLoaded] = useState(false);
+/* Animated progress bar — simulates video playback timeline */
+const ProgressBar = ({ isActive, duration }: { isActive: boolean; duration: number }) => {
+  const progress = useRef(new Animated.Value(0)).current;
 
-  const onStatusUpdate = useCallback((status: AVPlaybackStatus) => {
-    if (status.isLoaded && !isLoaded) {
-      setIsLoaded(true);
+  useEffect(() => {
+    if (isActive) {
+      progress.setValue(0);
+      Animated.loop(
+        Animated.timing(progress, {
+          toValue: 1,
+          duration: duration * 1000,
+          useNativeDriver: false,
+        }),
+      ).start();
+    } else {
+      progress.stopAnimation();
+      progress.setValue(0);
     }
-  }, [isLoaded]);
+  }, [isActive, duration, progress]);
+
+  const width = progress.interpolate({
+    inputRange: [0, 1],
+    outputRange: ['0%', '100%'],
+  });
 
   return (
-    <Video
-      ref={videoRef}
-      source={{ uri }}
-      style={StyleSheet.absoluteFill}
-      resizeMode={ResizeMode.COVER}
-      shouldPlay
-      isLooping
-      isMuted={false}
-      onPlaybackStatusUpdate={onStatusUpdate}
-      useNativeControls={false}
-    />
+    <View style={styles.progressTrack}>
+      <Animated.View style={[styles.progressFill, { width }]} />
+    </View>
   );
 };
 
@@ -175,6 +168,7 @@ export const HomeScreen = () => {
   const [activeIndex, setActiveIndex] = useState(0);
   const [commentId, setCommentId] = useState<string | null>(null);
   const [likedIds, setLikedIds] = useState<Set<string>>(new Set());
+  const [pausedIds, setPausedIds] = useState<Set<string>>(new Set());
 
   const tabH = useBottomTabBarHeight();
   const ITEM_H = SH - tabH;
@@ -195,6 +189,10 @@ export const HomeScreen = () => {
     } else { vote(id); }
   }, [vote]);
 
+  const togglePause = useCallback((id: string) => {
+    setPausedIds(p => { const n = new Set(p); n.has(id) ? n.delete(id) : n.add(id); return n; });
+  }, []);
+
   const share = useCallback(() => {
     Share.share({ message: 'Check out this Vybe! 🔥 #Vybe' }).catch(() => {});
   }, []);
@@ -206,15 +204,30 @@ export const HomeScreen = () => {
   const renderItem = useCallback(({ item, index }: { item: Entry; index: number }) => {
     const liked = item.id.startsWith('demo-') ? likedIds.has(item.id) : votedEntryIds.has(item.id);
     const isActive = activeIndex === index;
+    const isPaused = pausedIds.has(item.id);
+    const playing = isActive && !isPaused;
+
     return (
-      <View style={[styles.cell, { height: ITEM_H }]}>
+      <TouchableOpacity
+        activeOpacity={1}
+        onPress={() => togglePause(item.id)}
+        style={[styles.cell, { height: ITEM_H }]}
+      >
         <Image
           source={{ uri: item.thumbnailUrl || item.videoUrl }}
           style={StyleSheet.absoluteFill}
           resizeMode="cover"
         />
-        {/* Video plays only on the active cell */}
-        {isActive && <ActiveVideo uri={item.videoUrl} />}
+        {/* Paused overlay with play icon */}
+        {isActive && isPaused && (
+          <View style={styles.pausedOverlay}>
+            <View style={styles.playCircle}>
+              <Play color="#fff" fill="#fff" size={32} />
+            </View>
+          </View>
+        )}
+        {/* Progress bar at bottom of video */}
+        <ProgressBar isActive={playing} duration={item.duration} />
         {/* Content overlay */}
         <View style={styles.overlay}>
           <View style={styles.info}>
@@ -239,9 +252,9 @@ export const HomeScreen = () => {
             </TouchableOpacity>
           </View>
         </View>
-      </View>
+      </TouchableOpacity>
     );
-  }, [ITEM_H, activeIndex, likedIds, votedEntryIds, like, share]);
+  }, [ITEM_H, activeIndex, likedIds, votedEntryIds, pausedIds, like, share, togglePause]);
 
   return (
     <View style={styles.root}>
@@ -300,4 +313,26 @@ const styles = StyleSheet.create({
   },
   topBar: { position: 'absolute', top: 60, left: 0, right: 0, zIndex: 10, alignItems: 'center' },
   foot: { height: 100, justifyContent: 'center', alignItems: 'center' },
+  pausedOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center', justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.25)',
+    zIndex: 5,
+  },
+  playCircle: {
+    width: 72, height: 72, borderRadius: 36,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center', justifyContent: 'center',
+    paddingLeft: 4,
+  },
+  progressTrack: {
+    position: 'absolute', bottom: 0, left: 0, right: 0,
+    height: 3, backgroundColor: 'rgba(255,255,255,0.2)',
+    zIndex: 8,
+  },
+  progressFill: {
+    height: 3,
+    backgroundColor: '#fff',
+    borderRadius: 1.5,
+  },
 });
