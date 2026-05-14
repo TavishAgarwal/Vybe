@@ -8,14 +8,9 @@ import { Text } from '@/components/ui/Text'
 import { Card } from '@/components/ui/Card'
 import { AlertModal } from '@/components/ui/AppModal'
 import SettingsRow from '@/components/ui/SettingsRow'
-import { useSubscription } from '@/contexts/SubscriptionContext'
-import { logoutRevenueCat } from '@/lib/purchases'
 import { supabase } from '@/lib/supabase'
 import { track } from '@/lib/analytics'
-import { adjustBrightness } from '@/lib/utils'
 import {
-    ACCENT,
-    ACCENT_BORDER,
     BG,
     TEXT_PRIMARY,
     TEXT_SECONDARY,
@@ -27,22 +22,15 @@ import { useProfile } from '@/hooks/useProfile'
 
 export default function ProfileScreen() {
     const insets = useSafeAreaInsets()
-    const { isPremium, customerInfo } = useSubscription()
     const { data: profile } = useProfile()
     const [signOutModal, setSignOutModal] = useState(false)
     const [signingOut, setSigningOut] = useState(false)
     const [errorModal, setErrorModal] = useState<string | null>(null)
 
-    const expiryMs = customerInfo?.entitlements.active['premium']?.expirationDate
-    const expiryDate = expiryMs
-        ? new Date(expiryMs).toLocaleDateString(undefined, { month: 'short', day: 'numeric', year: 'numeric' })
-        : null
-
     async function handleSignOut() {
         setSigningOut(true)
         try {
             track('logout')
-            await logoutRevenueCat()
             const { error } = await supabase.auth.signOut()
             if (error) throw error
         } catch (e: any) {
@@ -68,49 +56,12 @@ export default function ProfileScreen() {
 
                 <View style={s.avatarWrap}>
                     <Text style={s.avatarText}>{profile?.initials ?? demoUser.initials}</Text>
-                    {isPremium && (
-                        <View style={s.premiumDot}>
-                            <Ionicons name="sparkles" size={10} color="#fff" />
-                        </View>
-                    )}
                 </View>
 
                 <Text style={s.name}>{profile?.fullName ?? demoUser.fullName}</Text>
                 <Text style={s.metaText}>{demoUser.role} · {demoUser.teamName}</Text>
                 <Text style={s.metaText}>{profile?.email ?? demoUser.email}</Text>
             </Card>
-
-            {isPremium ? (
-                <Card style={[s.planCard, { borderColor: ACCENT_BORDER }]}>
-                    <View style={s.planTop}>
-                        <View style={s.planBadge}>
-                            <Ionicons name="sparkles" size={11} color="#fff" />
-                        </View>
-                        <View style={{ flex: 1 }}>
-                            <Text style={s.planTitle}>Premium Active</Text>
-                            <Text style={s.planSub}>{expiryDate ? `Renews ${expiryDate}` : 'Billing cycle active'}</Text>
-                        </View>
-                        <Pressable onPress={() => router.push('/upgrade')} style={s.manageBtn}>
-                            <Text style={s.manageBtnText}>Manage</Text>
-                        </Pressable>
-                    </View>
-                </Card>
-            ) : (
-                <Pressable onPress={() => router.push('/upgrade')} style={s.upgradeCard}>
-                    <LinearGradient
-                        colors={[ACCENT, adjustBrightness(ACCENT, -18)]}
-                        start={{ x: 0, y: 0 }}
-                        end={{ x: 1, y: 0 }}
-                        style={StyleSheet.absoluteFillObject}
-                    />
-                    <Ionicons name="sparkles" size={15} color="#fff" />
-                    <View style={{ flex: 1 }}>
-                        <Text style={s.upgradeTitle}>Upgrade to Premium</Text>
-                        <Text style={s.upgradeSub}>Advanced controls, faster support, and all modules.</Text>
-                    </View>
-                    <Ionicons name="chevron-forward" size={17} color="rgba(255,255,255,0.8)" />
-                </Pressable>
-            )}
 
             <Text style={s.sectionTitle}>Account</Text>
             <Card compact style={s.sectionCard}>
@@ -151,7 +102,6 @@ export default function ProfileScreen() {
     )
 }
 
-
 const s = StyleSheet.create({
     container: { paddingHorizontal: 20, gap: 14 },
     heroCard: {
@@ -170,55 +120,8 @@ const s = StyleSheet.create({
         marginBottom: 4,
     },
     avatarText: { fontSize: 24, fontWeight: '800', color: '#fff' },
-    premiumDot: {
-        position: 'absolute',
-        bottom: 0,
-        right: 0,
-        width: 20,
-        height: 20,
-        borderRadius: 999,
-        backgroundColor: ACCENT,
-        borderWidth: 2,
-        borderColor: BG,
-        alignItems: 'center',
-        justifyContent: 'center',
-    },
     name: { fontSize: 22, fontWeight: '800', color: TEXT_PRIMARY, letterSpacing: -0.4 },
     metaText: { fontSize: 12.5, color: TEXT_SECONDARY },
-    planCard: {
-        borderWidth: 1,
-        paddingVertical: 12,
-    },
-    planTop: { flexDirection: 'row', alignItems: 'center', gap: 10 },
-    planBadge: {
-        width: 30,
-        height: 30,
-        borderRadius: 9,
-        alignItems: 'center',
-        justifyContent: 'center',
-        backgroundColor: ACCENT,
-    },
-    planTitle: { color: ACCENT, fontSize: 14.5, fontWeight: '700' },
-    planSub: { color: TEXT_SECONDARY, fontSize: 12 },
-    manageBtn: {
-        borderWidth: 1,
-        borderColor: ACCENT_BORDER,
-        borderRadius: 8,
-        paddingHorizontal: 10,
-        paddingVertical: 5,
-    },
-    manageBtnText: { color: ACCENT, fontSize: 12, fontWeight: '600' },
-    upgradeCard: {
-        minHeight: 66,
-        borderRadius: 16,
-        overflow: 'hidden',
-        flexDirection: 'row',
-        alignItems: 'center',
-        gap: 10,
-        paddingHorizontal: 14,
-    },
-    upgradeTitle: { color: '#fff', fontSize: 14.5, fontWeight: '700' },
-    upgradeSub: { color: 'rgba(255,255,255,0.7)', fontSize: 12, marginTop: 1 },
     sectionTitle: {
         fontSize: 11,
         fontWeight: '700',

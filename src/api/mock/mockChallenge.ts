@@ -17,7 +17,7 @@ export const activeChallenge: Challenge = {
   id: 'c-1',
   title: 'Acoustic Covers',
   description: 'Show us your best acoustic cover of any popular song.',
-  category: 'singing',
+  category: 'music',
   weekNumber: 42,
   year: today.getFullYear(),
   startDate: start.toISOString(),

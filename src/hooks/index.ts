@@ -1,5 +1,6 @@
 export * from './useActiveChallenge';
+export * from './useActiveChallenges';
 export * from './useComments';
 export * from './useFeed';
 export * from './useLeaderboard';
-// Additional hooks will be exported here
+export * from './useProfileStats';

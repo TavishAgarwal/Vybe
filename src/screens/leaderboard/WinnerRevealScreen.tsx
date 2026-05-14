@@ -13,18 +13,21 @@ import { colors, spacing, typography } from '../../theme';
 import { Avatar, GradientButton } from '../../components/ui';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
-
-// Mock winner data
-const WINNER = {
-  username: 'SarahDance',
-  avatarUrl: 'https://i.pravatar.cc/150?u=sarah',
-  challengeName: 'Acoustic Covers',
-  votes: 15420,
-};
+import { useLeaderboardStore } from '../../stores/leaderboardStore';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'WinnerReveal'>;
 
 export const WinnerRevealScreen: React.FC<Props> = ({ navigation }) => {
+  const topEntry = useLeaderboardStore(s => s.currentWeek[0]);
+
+  const winner = topEntry
+    ? {
+        username: topEntry.user?.username ?? topEntry.user?.displayName ?? 'Unknown',
+        avatarUrl: topEntry.user?.avatarUrl ?? '',
+        challengeName: topEntry.challenge?.title ?? 'Weekly Challenge',
+        votes: topEntry.voteCount,
+      }
+    : null;
   const scale = useSharedValue(0);
   const opacity = useSharedValue(0);
   const crownY = useSharedValue(-50);
@@ -54,12 +57,30 @@ export const WinnerRevealScreen: React.FC<Props> = ({ navigation }) => {
     opacity: titleOpacity.value,
   }));
 
+  if (!winner) {
+    return (
+      <SafeAreaView style={styles.container}>
+        <View style={styles.winnerContainer}>
+          <Trophy color={colors.text.secondary} size={64} />
+          <Text style={styles.headerTitle}>No Winner Yet</Text>
+          <Text style={styles.challengeName}>Check back after the challenge ends</Text>
+          <GradientButton
+            title="Back to Leaderboard"
+            variant="outline"
+            onPress={() => navigation.goBack()}
+            style={styles.button}
+          />
+        </View>
+      </SafeAreaView>
+    );
+  }
+
   return (
     <SafeAreaView style={styles.container}>
       <Animated.View style={[styles.header, animatedTitleStyle]}>
         <Trophy color={colors.primary.base} size={48} />
         <Text style={styles.headerTitle}>Winner Revealed</Text>
-        <Text style={styles.challengeName}>#{WINNER.challengeName}</Text>
+        <Text style={styles.challengeName}>#{winner.challengeName}</Text>
       </Animated.View>
 
       <View style={styles.winnerContainer}>
@@ -72,16 +93,16 @@ export const WinnerRevealScreen: React.FC<Props> = ({ navigation }) => {
         </Animated.View>
 
         <Animated.View style={[styles.avatarWrapper, animatedAvatarStyle]}>
-          <Avatar url={WINNER.avatarUrl} size="xl" />
+          <Avatar url={winner.avatarUrl} size="xl" />
           <View style={styles.badge}>
             <Text style={styles.badgeText}>1st</Text>
           </View>
         </Animated.View>
 
         <Animated.View style={[styles.detailsContainer, animatedTitleStyle]}>
-          <Text style={styles.username}>@{WINNER.username}</Text>
+          <Text style={styles.username}>@{winner.username}</Text>
           <Text style={styles.votesText}>
-            {WINNER.votes.toLocaleString()} Votes
+            {winner.votes.toLocaleString()} Votes
           </Text>
         </Animated.View>
       </View>

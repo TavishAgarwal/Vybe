@@ -38,7 +38,11 @@ export const LoginScreen: React.FC<LoginScreenProps> = ({ navigation }) => {
     }
 
     setError(null);
-    await login(parsed.data.email, parsed.data.password);
+    try {
+      await login(parsed.data.email, parsed.data.password);
+    } catch (e: any) {
+      setError(e?.message || 'Invalid login credentials. Please try again.');
+    }
   };
 
   return (

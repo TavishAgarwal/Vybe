@@ -10,6 +10,7 @@ export interface DbUser {
   full_name: string | null;
   avatar_url: string | null;
   bio: string | null;
+  categories: string[];
   vybe_score: number;
   created_at: string;
 }
@@ -44,6 +45,7 @@ export interface DbChallenge {
   id: string;
   title: string;
   description: string;
+  category: string;
   status: string;
   ends_at: string;
   created_at: string;

@@ -16,12 +16,19 @@ export interface User {
 }
 
 export type ChallengeCategory =
-  | 'singing'
-  | 'dancing'
+  | 'music'
+  | 'dance'
   | 'comedy'
   | 'cooking'
   | 'art'
-  | 'instrument';
+  | 'sports'
+  | 'gaming'
+  | 'fashion'
+  | 'fitness'
+  | 'diy'
+  | 'pets'
+  | 'travel'
+  | 'general';
 export type ChallengeStatus =
   | 'upcoming'
   | 'active'

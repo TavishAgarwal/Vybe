@@ -5,11 +5,11 @@ import {
   Text,
   TouchableOpacity,
   ScrollView,
+  Image,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
-import { ArrowLeft, Music, Wand2, Check } from 'lucide-react-native';
+import { ArrowLeft, Music, Wand2, Check, Play } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../theme';
-import Video from 'react-native-video';
 import { GradientButton } from '../../components/ui';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
@@ -20,7 +20,7 @@ const FILTERS = [
   { id: 'warm', name: 'Warm', color: 'rgba(255, 150, 0, 0.15)' },
   { id: 'cool', name: 'Cool', color: 'rgba(0, 150, 255, 0.15)' },
   { id: 'vintage', name: 'Vintage', color: 'rgba(150, 100, 50, 0.2)' },
-  { id: 'bw', name: 'B&W', color: 'rgba(0, 0, 0, 0.3)' }, // (Post-process will actually do grayscale)
+  { id: 'bw', name: 'B&W', color: 'rgba(0, 0, 0, 0.3)' },
 ];
 
 const MUSIC_TRACKS = [
@@ -53,13 +53,17 @@ export const EffectsScreen: React.FC<Props> = ({ route, navigation }) => {
   return (
     <View style={styles.container}>
       <View style={styles.videoContainer}>
-        <Video
+        {/* Use Image to show video thumbnail — avoids native RCTVideo crash */}
+        <Image
           source={{ uri: videoUri }}
           style={StyleSheet.absoluteFill}
           resizeMode="cover"
-          repeat
-          muted={selectedMusic.id !== 'none'}
         />
+        <View style={styles.playIconContainer}>
+          <View style={styles.playIconBg}>
+            <Play color={colors.text.inverse} size={32} fill={colors.text.inverse} />
+          </View>
+        </View>
         {/* Simulate filter with CSS overlay for preview */}
         <View pointerEvents="none" style={selectedFilterOverlay} />
       </View>
@@ -194,6 +198,19 @@ const styles = StyleSheet.create({
   },
   filterOverlay: {
     ...StyleSheet.absoluteFillObject,
+  },
+  playIconContainer: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+  },
+  playIconBg: {
+    width: 64,
+    height: 64,
+    borderRadius: 32,
+    backgroundColor: 'rgba(0,0,0,0.4)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
   overlay: {
     flex: 1,

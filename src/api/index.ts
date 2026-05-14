@@ -1,5 +1,4 @@
 import { supabase } from './supabase';
-import apiClient from './client';
 import { Entry, Challenge, Comment, User } from '../types/models';
 import {
   DbUser,
@@ -73,7 +72,7 @@ export const challengesApi = {
         id: data.id,
         title: data.title,
         description: data.description,
-        category: 'singing' as const, // Simplified
+        category: (data.category || 'general') as Challenge['category'],
         weekNumber: 1,
         year: 2026,
         startDate: data.created_at,
@@ -87,6 +86,40 @@ export const challengesApi = {
         runnerUp2Id: null,
       } satisfies Challenge,
     };
+  },
+
+  getAll: async () => {
+    const response = await supabase
+      .from('challenges')
+      .select('*')
+      .eq('status', 'active')
+      .order('ends_at', { ascending: true });
+    const data = (response.data ?? []) as DbChallenge[];
+    const error = response.error;
+
+    if (error) {
+      throw error;
+    }
+
+    const challenges: Challenge[] = data.map(row => ({
+      id: row.id,
+      title: row.title,
+      description: row.description,
+      category: (row.category || 'general') as Challenge['category'],
+      weekNumber: 1,
+      year: 2026,
+      startDate: row.created_at,
+      endDate: row.ends_at,
+      revealDate: row.ends_at,
+      coverImageUrl: `https://picsum.photos/seed/${row.id}/800/400`,
+      promptText: row.description,
+      status: row.status as Challenge['status'],
+      winnerId: null,
+      runnerUp1Id: null,
+      runnerUp2Id: null,
+    }));
+
+    return { data: challenges };
   },
 };
 
@@ -143,7 +176,18 @@ export const votesApi = {
       throw new Error('Not authenticated');
     }
 
-    await apiClient.post(`/entry-vote?entryId=${encodeURIComponent(entryId)}`);
+    // Insert vote row (unique constraint prevents duplicates)
+    const { error: voteError } = await supabase
+      .from('votes')
+      .insert({ entry_id: entryId, user_id: user.id });
+
+    if (voteError) {
+      throw voteError;
+    }
+
+    // Bump vote_count on the entry
+    await supabase.rpc('increment_vote_count', { target_entry_id: entryId });
+
     return { data: { success: true } };
   },
   unvote: async (entryId: string) => {
@@ -152,9 +196,19 @@ export const votesApi = {
       throw new Error('Not authenticated');
     }
 
-    await apiClient.delete(
-      `/entry-vote?entryId=${encodeURIComponent(entryId)}`,
-    );
+    const { error: deleteError } = await supabase
+      .from('votes')
+      .delete()
+      .eq('entry_id', entryId)
+      .eq('user_id', user.id);
+
+    if (deleteError) {
+      throw deleteError;
+    }
+
+    // Decrement vote_count on the entry
+    await supabase.rpc('decrement_vote_count', { target_entry_id: entryId });
+
     return { data: { success: true } };
   },
 };
@@ -196,12 +250,36 @@ export const commentsApi = {
       throw new Error('Not authenticated');
     }
 
-    const response = await apiClient.post<Comment>(
-      `/entry-comment?entryId=${encodeURIComponent(entryId)}`,
-      { text },
-    );
+    const { data, error } = await supabase
+      .from('comments')
+      .insert({
+        entry_id: entryId,
+        user_id: user.id,
+        content: text,
+        positivity_score: 1.0,
+      })
+      .select('*, user:users(*)')
+      .single();
 
-    return { data: response.data };
+    if (error) {
+      throw error;
+    }
+
+    const dbComment = data as DbComment;
+    const comment: Comment = {
+      id: dbComment.id,
+      entryId: dbComment.entry_id,
+      userId: dbComment.user_id,
+      text: dbComment.content,
+      positivityScore: dbComment.positivity_score,
+      isPinned: false,
+      parentId: null,
+      createdAt: dbComment.created_at,
+      likeCount: 0,
+      user: dbComment.user ? mapUser(dbComment.user) : undefined,
+    };
+
+    return { data: comment };
   },
 };
 

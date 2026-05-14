@@ -1,5 +1,5 @@
 import React from 'react';
-import { StyleSheet, View, Text, ViewStyle, TextStyle } from 'react-native';
+import { StyleSheet, View, Text, ViewStyle, TextStyle, TouchableOpacity } from 'react-native';
 import { colors, spacing, typography } from '../../theme';
 
 interface PillProps {
@@ -8,6 +8,7 @@ interface PillProps {
   size?: 'sm' | 'md';
   style?: ViewStyle;
   textStyle?: TextStyle;
+  onPress?: () => void;
 }
 
 export const Pill: React.FC<PillProps> = ({
@@ -16,6 +17,7 @@ export const Pill: React.FC<PillProps> = ({
   size = 'md',
   style,
   textStyle,
+  onPress,
 }) => {
   const getBackgroundColor = () => {
     switch (variant) {
@@ -47,25 +49,37 @@ export const Pill: React.FC<PillProps> = ({
     }
   };
 
-  return (
-    <View
+  const containerStyle = [
+    styles.container,
+    size === 'sm' ? styles.containerSm : styles.containerMd,
+    { backgroundColor: getBackgroundColor() },
+    style,
+  ];
+
+  const labelEl = (
+    <Text
       style={[
-        styles.container,
-        size === 'sm' ? styles.containerSm : styles.containerMd,
-        { backgroundColor: getBackgroundColor() },
-        style,
+        styles.text,
+        size === 'sm' ? styles.textSm : styles.textMd,
+        { color: getTextColor() },
+        textStyle,
       ]}
     >
-      <Text
-        style={[
-          styles.text,
-          size === 'sm' ? styles.textSm : styles.textMd,
-          { color: getTextColor() },
-          textStyle,
-        ]}
-      >
-        {label}
-      </Text>
+      {label}
+    </Text>
+  );
+
+  if (onPress) {
+    return (
+      <TouchableOpacity activeOpacity={0.7} onPress={onPress} style={containerStyle}>
+        {labelEl}
+      </TouchableOpacity>
+    );
+  }
+
+  return (
+    <View style={containerStyle}>
+      {labelEl}
     </View>
   );
 };

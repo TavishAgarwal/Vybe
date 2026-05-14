@@ -15,6 +15,9 @@ import { colors, spacing, typography } from '../../theme';
 import { GradientButton } from '../../components/ui';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
+import { supabase } from '../../api/supabase';
+import { useAuthStore } from '../../stores/authStore';
+import { logger } from '../../utils/logger';
 
 const REPORT_REASONS = [
   'Inappropriate Content',
@@ -33,19 +36,43 @@ export const ReportScreen: React.FC<Props> = ({ route, navigation }) => {
   const [selectedReason, setSelectedReason] = useState<string | null>(null);
   const [details, setDetails] = useState('');
   const [isSubmitting, setIsSubmitting] = useState(false);
+  const [error, setError] = useState<string | null>(null);
+  const { user } = useAuthStore();
 
   const handleSubmit = async () => {
     if (!selectedReason || !reportTargetId) {
       return;
     }
 
-    setIsSubmitting(true);
-    // Mock API call
-    await new Promise(r => setTimeout(r, 1000));
-    setIsSubmitting(false);
+    if (!user?.id) {
+      setError('You must be logged in to submit a report.');
+      return;
+    }
 
-    // In a real app, show a toast or success modal
-    navigation.goBack();
+    setIsSubmitting(true);
+    setError(null);
+
+    try {
+      const { error: insertError } = await supabase.from('reports').insert({
+        entry_id: entryId || null,
+        comment_id: commentId || null,
+        reporter_id: user.id,
+        reason: selectedReason,
+        details: details || null,
+      });
+
+      if (insertError) {
+        throw insertError;
+      }
+
+      navigation.goBack();
+    } catch (e) {
+      const msg = e instanceof Error ? e.message : 'Failed to submit report';
+      logger.warn('Report submission failed', e);
+      setError(msg);
+    } finally {
+      setIsSubmitting(false);
+    }
   };
 
   return (
@@ -112,6 +139,7 @@ export const ReportScreen: React.FC<Props> = ({ route, navigation }) => {
         </ScrollView>
 
         <View style={styles.footer}>
+          {error ? <Text style={styles.errorText}>{error}</Text> : null}
           <GradientButton
             title="Submit Report"
             onPress={handleSubmit}
@@ -233,5 +261,12 @@ const styles = StyleSheet.create({
   },
   submitButton: {
     width: '100%',
+  },
+  errorText: {
+    ...typography.weights.medium,
+    color: colors.status.error,
+    fontSize: typography.sizes.sm,
+    marginBottom: spacing.md,
+    textAlign: 'center',
   },
 });

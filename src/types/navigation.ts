@@ -5,10 +5,13 @@ export type AuthStackParamList = {
   Splash: undefined;
   Onboarding: undefined;
   PositivityPledge: undefined;
-  CategorySelect: undefined;
-  ProfileSetup: undefined;
   SignUp: undefined;
   Login: undefined;
+};
+
+export type OnboardingStackParamList = {
+  CategorySelect: undefined;
+  ProfileSetup: undefined;
 };
 
 export type MainTabParamList = {
@@ -21,6 +24,7 @@ export type MainTabParamList = {
 
 export type RootStackParamList = {
   Auth: NavigatorScreenParams<AuthStackParamList>;
+  Onboarding: NavigatorScreenParams<OnboardingStackParamList>;
   Main: NavigatorScreenParams<MainTabParamList>;
 
   // Modals & Full screen nested routes

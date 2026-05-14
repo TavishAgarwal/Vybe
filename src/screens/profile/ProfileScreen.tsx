@@ -9,13 +9,21 @@ import {
 import { SafeAreaView } from 'react-native-safe-area-context';
 import { LogOut } from 'lucide-react-native';
 import { colors, spacing, typography } from '../../theme';
-import { Avatar, GradientButton, Pill } from '../../components/ui';
+import { Avatar, GradientButton, Pill, SkeletonLoader } from '../../components/ui';
 import { useAuthStore } from '../../stores/authStore';
 import { useSensitiveScreenBlur } from '../../hooks/useSensitiveScreenBlur';
+import { useProfileStats } from '../../hooks/useProfileStats';
+
+const formatCount = (n: number): string => {
+  if (n >= 1_000_000) return `${(n / 1_000_000).toFixed(1)}M`;
+  if (n >= 1_000) return `${(n / 1_000).toFixed(1)}k`;
+  return String(n);
+};
 
 export const ProfileScreen = () => {
   const { user, logout } = useAuthStore();
   const shouldBlur = useSensitiveScreenBlur();
+  const { data: stats, isLoading: statsLoading } = useProfileStats(user?.id);
 
   return (
     <SafeAreaView style={styles.container}>
@@ -32,6 +40,9 @@ export const ProfileScreen = () => {
           <Text style={styles.displayName}>
             {user?.displayName || user?.username}
           </Text>
+          {user?.bio ? (
+            <Text style={styles.bioText}>{user.bio}</Text>
+          ) : null}
           <Pill
             label={`Vybe Score: ${user?.vybeScore || 0}`}
             variant="primary"
@@ -41,17 +52,29 @@ export const ProfileScreen = () => {
 
         <View style={styles.statsContainer}>
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>12</Text>
+            {statsLoading ? (
+              <SkeletonLoader width={40} height={24} />
+            ) : (
+              <Text style={styles.statValue}>{stats?.entries ?? 0}</Text>
+            )}
             <Text style={styles.statLabel}>Entries</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>4.2k</Text>
+            {statsLoading ? (
+              <SkeletonLoader width={40} height={24} />
+            ) : (
+              <Text style={styles.statValue}>{formatCount(stats?.totalVotes ?? 0)}</Text>
+            )}
             <Text style={styles.statLabel}>Votes</Text>
           </View>
           <View style={styles.statDivider} />
           <View style={styles.statItem}>
-            <Text style={styles.statValue}>3</Text>
+            {statsLoading ? (
+              <SkeletonLoader width={40} height={24} />
+            ) : (
+              <Text style={styles.statValue}>{stats?.wins ?? 0}</Text>
+            )}
             <Text style={styles.statLabel}>Wins</Text>
           </View>
         </View>
@@ -109,6 +132,15 @@ const styles = StyleSheet.create({
     fontSize: typography.sizes['2xl'],
     color: colors.text.primary,
     marginTop: spacing.md,
+  },
+  bioText: {
+    ...typography.weights.regular,
+    fontSize: typography.sizes.md,
+    color: colors.text.secondary,
+    marginTop: spacing.xs,
+    textAlign: 'center',
+    paddingHorizontal: spacing.xl,
+    lineHeight: 22,
   },
   scorePill: {
     marginTop: spacing.sm,

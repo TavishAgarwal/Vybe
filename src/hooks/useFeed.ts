@@ -17,6 +17,7 @@ export const useFeed = (challengeId: string) => {
     initialPageParam: 0,
     getNextPageParam: lastPage => lastPage.nextCursor,
     staleTime: 1000 * 60 * 5, // 5 minutes
+    enabled: !!challengeId,
   });
 
   // Sync with Zustand store to allow optimistic vote updates on the feed array

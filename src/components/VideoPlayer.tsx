@@ -1,12 +1,12 @@
-import React, { useRef, useEffect } from 'react';
-import { StyleSheet, View } from 'react-native';
-import Video, { VideoRef } from 'react-native-video';
+import React from 'react';
+import { StyleSheet, View, Image } from 'react-native';
+import { Play } from 'lucide-react-native';
 import { colors } from '../theme';
 
 interface VideoPlayerProps {
   uri: string;
   isPaused: boolean;
-  isActive: boolean; // Is it the currently visible item in the feed?
+  isActive: boolean;
 }
 
 export const VideoPlayer: React.FC<VideoPlayerProps> = ({
@@ -14,28 +14,21 @@ export const VideoPlayer: React.FC<VideoPlayerProps> = ({
   isPaused,
   isActive,
 }) => {
-  const videoRef = useRef<VideoRef>(null);
-
-  useEffect(() => {
-    if (!isActive && videoRef.current) {
-      videoRef.current.seek(0);
-    }
-  }, [isActive]);
-
   return (
     <View style={styles.container}>
-      <Video
-        ref={videoRef}
+      <Image
         source={{ uri }}
         style={styles.video}
         resizeMode="cover"
-        repeat={true}
-        paused={isPaused || !isActive}
-        muted={!isActive}
-        playInBackground={false}
-        playWhenInactive={false}
-        ignoreSilentSwitch="ignore"
       />
+      {/* Play indicator when paused or not active */}
+      {(isPaused || !isActive) && (
+        <View style={styles.playOverlay}>
+          <View style={styles.playButton}>
+            <Play color={colors.text.inverse} size={36} fill={colors.text.inverse} />
+          </View>
+        </View>
+      )}
     </View>
   );
 };
@@ -47,5 +40,19 @@ const styles = StyleSheet.create({
   },
   video: {
     ...StyleSheet.absoluteFillObject,
+  },
+  playOverlay: {
+    ...StyleSheet.absoluteFillObject,
+    alignItems: 'center',
+    justifyContent: 'center',
+    backgroundColor: 'rgba(0,0,0,0.2)',
+  },
+  playButton: {
+    width: 72,
+    height: 72,
+    borderRadius: 36,
+    backgroundColor: 'rgba(0,0,0,0.5)',
+    alignItems: 'center',
+    justifyContent: 'center',
   },
 });

@@ -16,6 +16,7 @@ import { GradientButton } from '../../components/ui';
 import { NativeStackScreenProps } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../../types/navigation';
 import { captionSchema } from '../../utils/validators';
+import { useActiveChallenge } from '../../hooks/useActiveChallenge';
 
 type Props = NativeStackScreenProps<RootStackParamList, 'Caption'>;
 
@@ -24,6 +25,8 @@ export const CaptionScreen: React.FC<Props> = ({ route, navigation }) => {
   const [caption, setCaption] = useState('');
   const [error, setError] = useState<string | null>(null);
   const maxChars = 200;
+  const { data: activeChallenge } = useActiveChallenge();
+  const challengeTag = activeChallenge?.title?.replace(/\s+/g, '') ?? 'Challenge';
 
   const handlePost = () => {
     const parsed = captionSchema.safeParse({ text: caption });
@@ -87,11 +90,10 @@ export const CaptionScreen: React.FC<Props> = ({ route, navigation }) => {
             <Text style={styles.sectionTitle}>Challenge Tag</Text>
             <View style={styles.tagPill}>
               <Hash color={colors.primary.base} size={16} />
-              <Text style={styles.tagText}>AcousticCovers</Text>
+              <Text style={styles.tagText}>{challengeTag}</Text>
             </View>
             <Text style={styles.tagHelper}>
-              This tag is automatically applied for the current weekly
-              challenge.
+              Tagged for: {activeChallenge?.title ?? 'the current weekly challenge'}.
             </Text>
           </View>
         </ScrollView>

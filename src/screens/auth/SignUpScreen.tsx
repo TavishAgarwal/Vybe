@@ -39,8 +39,13 @@ export const SignUpScreen: React.FC<SignUpScreenProps> = ({ navigation }) => {
     }
 
     setError(null);
-    await signUp(parsed.data.email, parsed.data.password);
-    navigation.navigate('CategorySelect');
+    try {
+      await signUp(parsed.data.email, parsed.data.password);
+      // RootNavigator will automatically show OnboardingNavigator
+      // since user.username is empty after fresh signup
+    } catch (e: any) {
+      setError(e?.message || 'Sign up failed. Please try again.');
+    }
   };
 
   return (

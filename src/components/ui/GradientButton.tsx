@@ -22,9 +22,16 @@ export interface GradientButtonProps extends TouchableOpacityProps {
   textStyle?: TextStyle;
 }
 
+const sizeConfig = {
+  sm: { height: 40, fontSize: typography.sizes.sm, px: spacing.md },
+  md: { height: 56, fontSize: typography.sizes.lg, px: spacing.xl },
+  lg: { height: 64, fontSize: typography.sizes.xl, px: spacing['2xl'] },
+};
+
 export const GradientButton: React.FC<GradientButtonProps> = ({
   title,
   variant = 'primary',
+  size = 'md',
   icon: Icon,
   isLoading = false,
   style,
@@ -35,6 +42,7 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
   const isPrimary = variant === 'primary';
   const isOutline = variant === 'outline';
   const isDisabled = disabled || isLoading;
+  const sizeStyle = sizeConfig[size];
 
   const content = (
     <>
@@ -54,6 +62,7 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
           <Text
             style={[
               styles.text,
+              { fontSize: sizeStyle.fontSize },
               isPrimary ? styles.textPrimary : styles.textSecondary,
               textStyle,
             ]}
@@ -76,7 +85,7 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
           }
           start={{ x: 0, y: 0 }}
           end={{ x: 1, y: 0 }}
-          style={[styles.container, styles.primaryContainer, style]}
+          style={[styles.container, styles.primaryContainer, { height: sizeStyle.height, paddingHorizontal: sizeStyle.px }, style]}
         >
           {content}
         </LinearGradient>
@@ -90,6 +99,7 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
       activeOpacity={0.8}
       style={[
         styles.container,
+        { height: sizeStyle.height, paddingHorizontal: sizeStyle.px },
         isOutline ? styles.outlineContainer : styles.secondaryContainer,
         isDisabled && styles.disabledContainer,
         style,
@@ -103,12 +113,10 @@ export const GradientButton: React.FC<GradientButtonProps> = ({
 
 const styles = StyleSheet.create({
   container: {
-    height: 56,
     borderRadius: spacing.radius.full,
     flexDirection: 'row',
     alignItems: 'center',
     justifyContent: 'center',
-    paddingHorizontal: spacing.xl,
   },
   primaryContainer: {
     // shadow applied via outer container or here depending on needs

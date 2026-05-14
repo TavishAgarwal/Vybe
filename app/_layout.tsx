@@ -35,8 +35,6 @@ import { I18nextProvider } from 'react-i18next'
 
 import { supabase, isSupabaseEnabled } from '@/lib/supabase'
 import { posthog, isPostHogEnabled, identify, resetIdentity, track } from '@/lib/analytics'
-import { configureRevenueCat, loginRevenueCat, logoutRevenueCat } from '@/lib/purchases'
-import { SubscriptionProvider } from '@/contexts/SubscriptionContext'
 import { ToastProvider } from '@/contexts/ToastContext'
 import i18n, { initI18n } from '@/lib/i18n'
 import OfflineBanner from '@/components/OfflineBanner'
@@ -149,8 +147,6 @@ function RootLayout() {
 
   useEffect(() => {
     // Configure RevenueCat once at startup, before any user is known
-    configureRevenueCat()
-
     if (!isSupabaseEnabled) {
       // No credentials — stay on landing page, no errors thrown
       setIsAuthed(false)
@@ -161,7 +157,6 @@ function RootLayout() {
       setIsAuthed(!!session)
       if (session?.user) {
         setOnboardingCompleted(session.user.user_metadata?.onboarding_completed === true)
-        loginRevenueCat(session.user.id)
         identify(
           session.user.id,
           session.user.email ? { email: session.user.email } : undefined
@@ -178,7 +173,6 @@ function RootLayout() {
       if (event === 'SIGNED_IN' && session?.user) {
         setIsAuthed(true)
         setOnboardingCompleted(session.user.user_metadata?.onboarding_completed === true)
-        loginRevenueCat(session.user.id)
         identify(
           session.user.id,
           session.user.email ? { email: session.user.email } : undefined
@@ -187,7 +181,6 @@ function RootLayout() {
       if (event === 'SIGNED_OUT') {
         setIsAuthed(false)
         setOnboardingCompleted(null)
-        logoutRevenueCat()
         resetIdentity()
       }
       if (event === 'USER_UPDATED' && session?.user) {
@@ -219,64 +212,62 @@ function RootLayout() {
   return (
     <ErrorBoundary>
       <I18nextProvider i18n={i18n}>
-        <MaybePostHogProvider>
-          <QueryClientProvider client={queryClient}>
-          <SubscriptionProvider>
-            <ToastProvider>
-            <SafeAreaProvider>
-              <GestureHandlerRootView style={{ flex: 1, backgroundColor: BG }}>
-                <BottomSheetModalProvider>
-                  <StatusBar
-                    style="light"
-                    translucent={Platform.OS === 'android'}
-                    backgroundColor={Platform.OS === 'android' ? BG : undefined}
-                  />
-                  <ThemeProvider value={customDarkTheme}>
-                    <View style={{ flex: 1, backgroundColor: BG }}>
-                      <Stack ref={navigationRef} screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: BG } }}>
+          <MaybePostHogProvider>
+            <QueryClientProvider client={queryClient}>
+              <ToastProvider>
+              <SafeAreaProvider>
+                <GestureHandlerRootView style={{ flex: 1, backgroundColor: BG }}>
+                  <BottomSheetModalProvider>
+                    <StatusBar
+                      style="light"
+                      translucent={Platform.OS === 'android'}
+                      backgroundColor={Platform.OS === 'android' ? BG : undefined}
+                    />
+                    <ThemeProvider value={customDarkTheme}>
+                      <View style={{ flex: 1, backgroundColor: BG }}>
+                        <Stack ref={navigationRef} screenOptions={{ headerShown: false, animation: 'fade', contentStyle: { backgroundColor: BG } }}>
 
-                        {/* ── Unauthenticated screens ──────────────────────────────────
-                        Accessible only when signed out. When isAuthed flips to true,
-                        Stack.Protected removes these and Expo Router auto-redirects to
-                        the first accessible authenticated screen. */}
-                        <Stack.Protected guard={!isAuthed}>
-                          <Stack.Screen name="index" />
-                          <Stack.Screen name="(auth)" />
-                        </Stack.Protected>
+                          {/* ── Unauthenticated screens ──────────────────────────────────
+                          Accessible only when signed out. When isAuthed flips to true,
+                          Stack.Protected removes these and Expo Router auto-redirects to
+                          the first accessible authenticated screen. */}
+                          <Stack.Protected guard={!isAuthed}>
+                            <Stack.Screen name="index" />
+                            <Stack.Screen name="(auth)" />
+                          </Stack.Protected>
 
-                        {/* ── Onboarding screens ───────────────────────────────────────
-                        Shown when signed in but onboarding not yet completed. */}
-                        <Stack.Protected guard={!!isAuthed && onboardingCompleted === false}>
-                          <Stack.Screen name="(onboarding)" />
-                        </Stack.Protected>
+                          {/* ── Onboarding screens ───────────────────────────────────────
+                          Shown when signed in but onboarding not yet completed. */}
+                          <Stack.Protected guard={!!isAuthed && onboardingCompleted === false}>
+                            <Stack.Screen name="(onboarding)" />
+                          </Stack.Protected>
 
-                        {/* ── Authenticated screens ────────────────────────────────────
-                        Accessible only when signed in + onboarding done. */}
-                        <Stack.Protected guard={!!isAuthed && onboardingCompleted === true}>
-                          <Stack.Screen name="(tabs)" />
-                          <Stack.Screen name="detail/[id]" />
-                          <Stack.Screen name="settings" />
-                          <Stack.Screen name="support" />
-                        </Stack.Protected>
+                          {/* ── Authenticated screens ────────────────────────────────────
+                          Accessible only when signed in + onboarding done. */}
+                          <Stack.Protected guard={!!isAuthed && onboardingCompleted === true}>
+                            <Stack.Screen name="(tabs)" />
+                            <Stack.Screen name="detail/[id]" />
+                            <Stack.Screen name="settings" />
+                            <Stack.Screen name="support" />
+                          </Stack.Protected>
 
-                        {/* ── Always-public screens — declared LAST so they don't become
-                        the default redirect target when a protected group flips. ── */}
-                        <Stack.Screen name="upgrade" />
-                        <Stack.Screen name="privacy" />
-                        <Stack.Screen name="terms" />
-                      </Stack>
-                      <ScreenTracker />
-                      <OfflineBanner />
-                      <OfflineOverlay />
-                    </View>
-                  </ThemeProvider>
-                </BottomSheetModalProvider>
-              </GestureHandlerRootView>
-            </SafeAreaProvider>
-            </ToastProvider>
-          </SubscriptionProvider>
-          </QueryClientProvider>
-        </MaybePostHogProvider>
+                          {/* ── Always-public screens — declared LAST so they don't become
+                          the default redirect target when a protected group flips. ── */}
+                          <Stack.Screen name="upgrade" />
+                          <Stack.Screen name="privacy" />
+                          <Stack.Screen name="terms" />
+                        </Stack>
+                        <ScreenTracker />
+                        <OfflineBanner />
+                        <OfflineOverlay />
+                      </View>
+                    </ThemeProvider>
+                  </BottomSheetModalProvider>
+                </GestureHandlerRootView>
+              </SafeAreaProvider>
+              </ToastProvider>
+            </QueryClientProvider>
+          </MaybePostHogProvider>
       </I18nextProvider>
     </ErrorBoundary>
   )

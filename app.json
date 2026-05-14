@@ -45,10 +45,18 @@
           "action": "VIEW",
           "autoVerify": true,
           "data": [
-            { "scheme": "vybeapp" },
-            { "scheme": "https", "host": "vybe.app" }
+            {
+              "scheme": "vybeapp"
+            },
+            {
+              "scheme": "https",
+              "host": "vybe.app"
+            }
           ],
-          "category": ["BROWSABLE", "DEFAULT"]
+          "category": [
+            "BROWSABLE",
+            "DEFAULT"
+          ]
         }
       ]
     },
@@ -82,7 +90,8 @@
           "organization": "your-org"
         }
       ],
-      "@sentry/react-native"
+      "@sentry/react-native",
+      "expo-video"
     ],
     "extra": {
       "EXPO_PUBLIC_API_URL": "https://api.vybe.app",

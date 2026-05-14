@@ -1,59 +1,67 @@
-import { createMMKV, type MMKV } from 'react-native-mmkv';
-import * as SecureStore from 'expo-secure-store';
+import AsyncStorage from '@react-native-async-storage/async-storage';
 
-const SECURE_STORAGE_KEY = 'vybe.mmkv.encryptionKey.v1';
+/**
+ * Expo Go–compatible storage layer.
+ *
+ * secureStorage exposes the same synchronous-looking API the rest of the app
+ * already relies on, backed by an in-memory cache that is hydrated from
+ * AsyncStorage on first read and flushed on every write.
+ */
 
-const randomKey = () => {
-  const bytes = new Uint8Array(32);
-  const cryptoLike = globalThis.crypto as Crypto | undefined;
+const cache = new Map<string, string>();
+let hydrated = false;
 
-  if (cryptoLike?.getRandomValues) {
-    cryptoLike.getRandomValues(bytes);
-  } else {
-    for (let index = 0; index < bytes.length; index += 1) {
-      bytes[index] = Math.floor(Math.random() * 256);
-    }
+const hydrate = () => {
+  // Best-effort sync hydration via a fire-and-forget async call.
+  // First reads before hydration finishes fall back to cache (empty).
+  if (!hydrated) {
+    hydrated = true;
+    AsyncStorage.getAllKeys()
+      .then(keys => AsyncStorage.multiGet(keys))
+      .then(pairs => {
+        for (const [key, value] of pairs) {
+          if (value !== null) {
+            cache.set(key, value);
+          }
+        }
+      })
+      .catch(() => undefined);
   }
-
-  return Array.from(bytes, byte => byte.toString(16).padStart(2, '0')).join('');
 };
 
-const getEncryptionKey = () => {
-  const existing = SecureStore.getItem(SECURE_STORAGE_KEY);
-  if (existing) {
-    return existing;
-  }
+hydrate();
 
-  const next = randomKey();
-  SecureStore.setItem(SECURE_STORAGE_KEY, next, {
-    keychainAccessible: SecureStore.WHEN_UNLOCKED_THIS_DEVICE_ONLY,
-  });
-  return next;
+export const secureStorage = {
+  getString: (key: string): string | undefined => {
+    return cache.get(key);
+  },
+  set: (key: string, value: string) => {
+    cache.set(key, value);
+    AsyncStorage.setItem(key, value).catch(() => undefined);
+  },
+  remove: (key: string) => {
+    cache.delete(key);
+    AsyncStorage.removeItem(key).catch(() => undefined);
+  },
+  getAllKeys: (): string[] => {
+    return Array.from(cache.keys());
+  },
 };
 
-export const secureStorage = createMMKV({
-  id: 'vybe-secure',
-  encryptionKey: getEncryptionKey(),
-});
-
-export const appStorage = createMMKV({
-  id: 'vybe-app',
-});
-
-// Backwards-compatible alias for older imports. Sensitive callers should move to
-// secureStorage; keeping this alias prevents accidental fallback to plain MMKV.
+// Aliases for backward compatibility
+export const appStorage = secureStorage;
 export const storage = secureStorage;
 
-export const createZustandStorage = (instance: MMKV) => ({
+export const createZustandStorage = (_instance: typeof secureStorage) => ({
   getItem: (name: string) => {
-    const value = instance.getString(name);
+    const value = _instance.getString(name);
     return value ?? null;
   },
   setItem: (name: string, value: string) => {
-    instance.set(name, value);
+    _instance.set(name, value);
   },
   removeItem: (name: string) => {
-    instance.remove(name);
+    _instance.remove(name);
   },
 });
 
@@ -61,5 +69,5 @@ export const secureZustandStorage = createZustandStorage(secureStorage);
 export const appZustandStorage = createZustandStorage(appStorage);
 
 export const removeSecureStoreItem = async (key: string) => {
-  await SecureStore.deleteItemAsync(key);
+  await AsyncStorage.removeItem(key);
 };

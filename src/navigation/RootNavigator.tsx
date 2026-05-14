@@ -2,6 +2,7 @@ import React, { useEffect } from 'react';
 import { createNativeStackNavigator } from '@react-navigation/native-stack';
 import { RootStackParamList } from '../types/navigation';
 import { AuthNavigator } from './AuthNavigator';
+import { OnboardingNavigator } from './OnboardingNavigator';
 import { MainNavigator } from './MainNavigator';
 import { EffectsScreen } from '../screens/create/EffectsScreen';
 import { CaptionScreen } from '../screens/create/CaptionScreen';
@@ -24,7 +25,7 @@ const mapProfileToUser = (profile: DbUser) => ({
   displayName: profile.full_name || profile.username,
   avatarUrl: profile.avatar_url || '',
   bio: profile.bio || '',
-  categories: [],
+  categories: profile.categories ?? [],
   vybeScore: profile.vybe_score || 0,
   vybeCoins: 0,
   strikeCount: 0,
@@ -36,7 +37,6 @@ const mapProfileToUser = (profile: DbUser) => ({
 
 export const RootNavigator = () => {
   const user = useAuthStore(state => state.user);
-  const isLoading = useAuthStore(state => state.isLoading);
   const [isInitializing, setIsInitializing] = React.useState(true);
 
   useEffect(() => {
@@ -47,11 +47,15 @@ export const RootNavigator = () => {
       try {
         const {
           data: { session },
+          error: sessionError,
         } = await supabase.auth.getSession();
+
         if (!isMounted) {
           return;
         }
-        if (!session) {
+
+        if (sessionError || !session) {
+          // No valid session — clear any stale tokens
           useAuthStore.setState({ user: null, isLoading: false });
           setIsInitializing(false);
           return;
@@ -76,6 +80,7 @@ export const RootNavigator = () => {
         }
         setIsInitializing(false);
       } catch {
+        // Network unreachable or other fetch error — start in logged-out state
         if (!isMounted) {
           return;
         }
@@ -101,7 +106,7 @@ export const RootNavigator = () => {
     };
   }, []);
 
-  if (isInitializing || isLoading) {
+  if (isInitializing) {
     return (
       <View style={styles.loadingContainer}>
         <ActivityIndicator size="large" color={colors.primary.base} />
@@ -111,7 +116,7 @@ export const RootNavigator = () => {
 
   return (
     <Stack.Navigator screenOptions={{ headerShown: false }}>
-      {user ? (
+      {user && user.username ? (
         <Stack.Group>
           <Stack.Screen name="Main" component={MainNavigator} />
           <Stack.Screen name="Effects" component={EffectsScreen} />
@@ -129,6 +134,8 @@ export const RootNavigator = () => {
             options={{ presentation: 'fullScreenModal' }}
           />
         </Stack.Group>
+      ) : user ? (
+        <Stack.Screen name="Onboarding" component={OnboardingNavigator} />
       ) : (
         <Stack.Screen name="Auth" component={AuthNavigator} />
       )}

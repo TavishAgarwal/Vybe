@@ -22,7 +22,7 @@ const mapProfileToUser = (profile: DbUser): User => ({
   displayName: profile.full_name || profile.username,
   avatarUrl: profile.avatar_url || '',
   bio: profile.bio || '',
-  categories: [],
+  categories: profile.categories ?? [],
   vybeScore: profile.vybe_score || 0,
   vybeCoins: 0,
   strikeCount: 0,
@@ -54,6 +54,10 @@ export const useAuthStore = create<AuthState>(set => ({
           .select('*')
           .eq('id', data.user.id)
           .single();
+        if (profileResponse.error) {
+          throw new Error('Could not load profile. Please try again.');
+        }
+
         const profile = profileResponse.data as DbUser | null;
 
         if (profile) {
@@ -61,11 +65,16 @@ export const useAuthStore = create<AuthState>(set => ({
             user: mapProfileToUser(profile),
             isLoading: false,
           });
+          return;
+        } else {
+          throw new Error('Profile not found.');
         }
       }
       set(state => ({ isLoading: false, user: state.user }));
-    } catch (e) {
-      logger.error('Login failed', e);
+    } catch (e: any) {
+      if (e?.name !== 'AuthApiError') {
+        logger.error('Login failed', e);
+      }
       set({ isLoading: false });
       throw e;
     }
@@ -74,13 +83,40 @@ export const useAuthStore = create<AuthState>(set => ({
   signUp: async (email, password) => {
     set({ isLoading: true });
     try {
-      const { error } = await supabase.auth.signUp({ email, password });
+      const { data, error } = await supabase.auth.signUp({ email, password });
       if (error) {
         throw error;
       }
+
+      // Fetch user profile after sign-up (mirrors login flow)
+      if (data.user) {
+        const profileResponse = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', data.user.id)
+          .single();
+        if (profileResponse.error) {
+          throw new Error('Could not load profile. Please try again.');
+        }
+
+        const profile = profileResponse.data as DbUser | null;
+
+        if (profile) {
+          set({
+            user: mapProfileToUser(profile),
+            isLoading: false,
+          });
+          return;
+        } else {
+          throw new Error('Profile not found.');
+        }
+      }
+
       set({ isLoading: false });
-    } catch (e) {
-      logger.error('Sign up failed', e);
+    } catch (e: any) {
+      if (e?.name !== 'AuthApiError') {
+        logger.error('Sign up failed', e);
+      }
       set({ isLoading: false });
       throw e;
     }
@@ -102,15 +138,30 @@ export const useAuthStore = create<AuthState>(set => ({
     // Optimistic update
     set({ user: { ...user, ...data } });
 
-    // DB update
-    await supabase
-      .from('users')
-      .update({
-        full_name: data.displayName,
-        bio: data.bio,
-        avatar_url: data.avatarUrl,
-      })
-      .eq('id', user.id);
+    // Build DB payload dynamically — only send fields that were provided
+    const dbPayload: Record<string, unknown> = {};
+    if (data.displayName !== undefined) {
+      dbPayload.full_name = data.displayName;
+    }
+    if (data.bio !== undefined) {
+      dbPayload.bio = data.bio;
+    }
+    if (data.avatarUrl !== undefined) {
+      dbPayload.avatar_url = data.avatarUrl;
+    }
+    if (data.username !== undefined || data.handle !== undefined) {
+      dbPayload.username = data.username ?? data.handle;
+    }
+    if (data.categories !== undefined) {
+      dbPayload.categories = data.categories;
+    }
+
+    if (Object.keys(dbPayload).length > 0) {
+      await supabase
+        .from('users')
+        .update(dbPayload)
+        .eq('id', user.id);
+    }
   },
 
   signPledge: () => {

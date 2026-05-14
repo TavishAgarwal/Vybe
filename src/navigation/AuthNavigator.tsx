@@ -7,8 +7,6 @@ import { OnboardingScreen } from '../screens/auth/OnboardingScreen';
 import { PositivityPledgeScreen } from '../screens/auth/PositivityPledgeScreen';
 import { SignUpScreen } from '../screens/auth/SignUpScreen';
 import { LoginScreen } from '../screens/auth/LoginScreen';
-import { CategorySelectScreen } from '../screens/auth/CategorySelectScreen';
-import { ProfileSetupScreen } from '../screens/auth/ProfileSetupScreen';
 
 const Stack = createNativeStackNavigator<AuthStackParamList>();
 
@@ -23,8 +21,6 @@ export const AuthNavigator = () => {
       />
       <Stack.Screen name="SignUp" component={SignUpScreen} />
       <Stack.Screen name="Login" component={LoginScreen} />
-      <Stack.Screen name="CategorySelect" component={CategorySelectScreen} />
-      <Stack.Screen name="ProfileSetup" component={ProfileSetupScreen} />
     </Stack.Navigator>
   );
 };

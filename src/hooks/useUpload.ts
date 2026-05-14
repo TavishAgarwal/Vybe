@@ -1,7 +1,8 @@
 import { useEffect, useRef, useState } from 'react';
 import * as FileSystem from 'expo-file-system/legacy';
 import { useAuthStore } from '../stores/authStore';
-import apiClient from '../api/client';
+import { supabase } from '../api/supabase';
+import { entriesApi } from '../api';
 import { Entry } from '../types/models';
 import { logger } from '../utils/logger';
 
@@ -15,19 +16,9 @@ interface UploadOptions {
   abortSignal?: AbortSignal;
 }
 
-interface UploadInitResponse {
-  uploadUrl?: unknown;
-  videoUrl?: unknown;
-  thumbnailUrl?: unknown;
-}
-
 const MAX_VIDEO_BYTES = 100 * 1024 * 1024;
 const MAX_VIDEO_SECONDS = 60;
-const CHUNK_SIZE_BYTES = 5 * 1024 * 1024;
-const ACCEPTED_VIDEO_MIME = new Set(['video/mp4', 'video/quicktime']);
 const ACCEPTED_VIDEO_EXTENSIONS = new Set(['mp4', 'mov']);
-
-const sleep = (ms: number) => new Promise(resolve => setTimeout(resolve, ms));
 
 const inferVideoMime = (uri: string) => {
   const extension = uri.split('?')[0]?.split('.').pop()?.toLowerCase() ?? '';
@@ -37,7 +28,7 @@ const inferVideoMime = (uri: string) => {
   if (extension === 'mov') {
     return 'video/quicktime';
   }
-  return '';
+  return 'video/mp4'; // default
 };
 
 const validateVideo = async (options: UploadOptions) => {
@@ -45,10 +36,7 @@ const validateVideo = async (options: UploadOptions) => {
     options.videoUri.split('?')[0]?.split('.').pop()?.toLowerCase() ?? '';
   const mimeType = inferVideoMime(options.videoUri);
 
-  if (
-    !ACCEPTED_VIDEO_EXTENSIONS.has(extension) ||
-    !ACCEPTED_VIDEO_MIME.has(mimeType)
-  ) {
+  if (!ACCEPTED_VIDEO_EXTENSIONS.has(extension)) {
     throw new Error('Upload a valid MP4 or MOV video.');
   }
 
@@ -74,77 +62,6 @@ const validateVideo = async (options: UploadOptions) => {
   };
 };
 
-const uploadChunk = async (
-  uploadUrl: string,
-  videoUri: string,
-  start: number,
-  end: number,
-  totalSize: number,
-  mimeType: string,
-  signal?: AbortSignal,
-) => {
-  const base64Chunk = await FileSystem.readAsStringAsync(videoUri, {
-    encoding: FileSystem.EncodingType.Base64,
-    position: start,
-    length: end - start,
-  });
-
-  const response = await fetch(uploadUrl, {
-    method: 'PUT',
-    headers: {
-      'Content-Type': mimeType,
-      'Content-Range': `bytes ${start}-${end - 1}/${totalSize}`,
-    },
-    body: base64Chunk,
-    signal,
-  });
-
-  if (!response.ok) {
-    throw new Error(`Upload failed with status ${response.status}`);
-  }
-};
-
-const uploadWithRetry = async (
-  uploadUrl: string,
-  videoUri: string,
-  size: number,
-  mimeType: string,
-  onProgress: (progress: number) => void,
-  signal?: AbortSignal,
-) => {
-  const chunks = Math.max(1, Math.ceil(size / CHUNK_SIZE_BYTES));
-
-  for (let index = 0; index < chunks; index += 1) {
-    const start = index * CHUNK_SIZE_BYTES;
-    const end = Math.min(size, start + CHUNK_SIZE_BYTES);
-
-    for (let attempt = 0; attempt < 3; attempt += 1) {
-      try {
-        if (signal?.aborted) {
-          throw new Error('Upload cancelled.');
-        }
-        await uploadChunk(
-          uploadUrl,
-          videoUri,
-          start,
-          end,
-          size,
-          mimeType,
-          signal,
-        );
-        break;
-      } catch (error) {
-        if (attempt === 2 || signal?.aborted) {
-          throw error;
-        }
-        await sleep(2 ** attempt * 500);
-      }
-    }
-
-    onProgress((index + 1) / chunks);
-  }
-};
-
 export const useUpload = () => {
   const [isUploading, setIsUploading] = useState(false);
   const [uploadProgress, setUploadProgress] = useState(0);
@@ -158,87 +75,94 @@ export const useUpload = () => {
     };
   }, []);
 
-  const safelySetUploading = (nextIsUploading: boolean) => {
+  const safeSet = <T,>(setter: (v: T) => void, value: T) => {
     if (isMountedRef.current) {
-      setIsUploading(nextIsUploading);
-    }
-  };
-
-  const safelySetProgress = (nextProgress: number) => {
-    if (isMountedRef.current) {
-      setUploadProgress(nextProgress);
-    }
-  };
-
-  const safelySetError = (nextError: Error | null) => {
-    if (isMountedRef.current) {
-      setError(nextError);
+      setter(value);
     }
   };
 
   const uploadVideo = async (options: UploadOptions): Promise<Entry | null> => {
-    safelySetUploading(true);
-    safelySetProgress(0);
-    safelySetError(null);
+    safeSet(setIsUploading, true);
+    safeSet(setUploadProgress, 0);
+    safeSet(setError, null);
 
     try {
       if (!user) {
         throw new Error('Must be logged in to upload');
       }
-      const { size, mimeType } = await validateVideo(options);
 
-      const initResponse = await apiClient.post<UploadInitResponse>(
-        '/upload-init',
-        {
-          challengeId: options.challengeId,
-          mimeType,
-          size,
-        },
-      );
+      const { mimeType, extension } = await validateVideo(options);
+      safeSet(setUploadProgress, 0.1);
 
-      const uploadUrl = initResponse.data?.uploadUrl;
-      const videoUrl = initResponse.data?.videoUrl;
-      const thumbnailUrl = initResponse.data?.thumbnailUrl;
-      if (typeof uploadUrl !== 'string' || typeof videoUrl !== 'string') {
-        throw new Error('Upload could not be initialized.');
+      // Read file as base64 for Supabase Storage upload
+      const base64Data = await FileSystem.readAsStringAsync(options.videoUri, {
+        encoding: FileSystem.EncodingType.Base64,
+      });
+      safeSet(setUploadProgress, 0.3);
+
+      // Upload to Supabase Storage
+      const fileName = `${user.id}/${Date.now()}.${extension}`;
+      const { error: storageError } = await supabase.storage
+        .from('videos')
+        .upload(fileName, decode(base64Data), {
+          contentType: mimeType,
+          upsert: false,
+        });
+
+      if (storageError) {
+        throw new Error(`Storage upload failed: ${storageError.message}`);
       }
+      safeSet(setUploadProgress, 0.7);
 
-      await uploadWithRetry(
-        uploadUrl,
-        options.videoUri,
-        size,
-        mimeType,
-        progress => safelySetProgress(progress * 0.8),
-        options.abortSignal,
-      );
+      // Get public URL for the uploaded video
+      const { data: publicUrlData } = supabase.storage
+        .from('videos')
+        .getPublicUrl(fileName);
+      const videoUrl = publicUrlData.publicUrl;
+      safeSet(setUploadProgress, 0.8);
 
-      const entryResponse = await apiClient.post<Entry>('/entry-create', {
-        challengeId: options.challengeId,
-        videoUrl,
-        thumbnailUrl,
+      // Create the entry in the database
+      const entryResult = await entriesApi.createEntry({
+        challenge_id: options.challengeId,
+        user_id: user.id,
+        video_url: videoUrl,
+        thumbnail_url: videoUrl, // Use video URL as thumbnail for now
         caption: options.caption,
-        musicTrack: options.musicTrack || 'Original Audio',
-        filterId: options.filterId,
+        status: 'live',
+        vote_count: 0,
+        music_track: options.musicTrack || 'Original Audio',
       });
 
-      safelySetProgress(0.9);
-      const entry = entryResponse.data;
-      safelySetProgress(1);
-      safelySetUploading(false);
-      await FileSystem.deleteAsync(options.videoUri, { idempotent: true });
+      safeSet(setUploadProgress, 1);
+      safeSet(setIsUploading, false);
 
-      return entry;
+      // Clean up local file
+      await FileSystem.deleteAsync(options.videoUri, { idempotent: true }).catch(
+        () => undefined,
+      );
+
+      return entryResult.data as unknown as Entry;
     } catch (err: unknown) {
       const uploadError = err instanceof Error ? err : new Error(String(err));
       logger.warn('Video upload failed', { message: uploadError.message });
       await FileSystem.deleteAsync(options.videoUri, {
         idempotent: true,
       }).catch(() => undefined);
-      safelySetError(uploadError);
-      safelySetUploading(false);
+      safeSet(setError, uploadError);
+      safeSet(setIsUploading, false);
       return null;
     }
   };
 
   return { uploadVideo, isUploading, uploadProgress, error };
 };
+
+// Decode base64 string to Uint8Array for Supabase Storage
+function decode(base64: string): Uint8Array {
+  const binaryString = atob(base64);
+  const bytes = new Uint8Array(binaryString.length);
+  for (let i = 0; i < binaryString.length; i++) {
+    bytes[i] = binaryString.charCodeAt(i);
+  }
+  return bytes;
+}
