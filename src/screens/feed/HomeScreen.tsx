@@ -1,10 +1,10 @@
-import React, { useState, useCallback, useMemo, useEffect } from 'react';
+import React, { useState, useCallback, useMemo, useRef } from 'react';
 import {
   StyleSheet, View, FlatList, Dimensions, ActivityIndicator,
   ViewToken, RefreshControl, Text, Share, Platform, Image,
   TouchableOpacity,
 } from 'react-native';
-import { useVideoPlayer, VideoView } from 'expo-video';
+import { Video, ResizeMode, AVPlaybackStatus } from 'expo-av';
 import { useFeed, useActiveChallenge } from '../../hooks';
 import { useFeedStore } from '../../stores/feedStore';
 import { CommentSheet } from '../../components';
@@ -136,20 +136,26 @@ const DEMO: Entry[] = U.map((user, i) => {
 
 /* Only one video player at a time — mounts for active cell, unmounts for others */
 const ActiveVideo = ({ uri }: { uri: string }) => {
-  const player = useVideoPlayer(uri, p => {
-    p.loop = true;
-  });
+  const videoRef = useRef<Video>(null);
+  const [isLoaded, setIsLoaded] = useState(false);
 
-  useEffect(() => {
-    try { player.play(); } catch (_) { /* ignore */ }
-  }, [player]);
+  const onStatusUpdate = useCallback((status: AVPlaybackStatus) => {
+    if (status.isLoaded && !isLoaded) {
+      setIsLoaded(true);
+    }
+  }, [isLoaded]);
 
   return (
-    <VideoView
-      player={player}
+    <Video
+      ref={videoRef}
+      source={{ uri }}
       style={StyleSheet.absoluteFill}
-      contentFit="cover"
-      nativeControls={false}
+      resizeMode={ResizeMode.COVER}
+      shouldPlay
+      isLooping
+      isMuted={false}
+      onPlaybackStatusUpdate={onStatusUpdate}
+      useNativeControls={false}
     />
   );
 };
