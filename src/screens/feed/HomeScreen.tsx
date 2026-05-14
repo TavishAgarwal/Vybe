@@ -236,6 +236,15 @@ export const HomeScreen = () => {
               <Text style={styles.uname}>@{item.user?.username ?? 'unknown'}</Text>
             </View>
             <Text style={styles.cap} numberOfLines={2}>{item.caption}</Text>
+            <TouchableOpacity 
+              style={[styles.voteBtn, liked && styles.voteBtnActive]} 
+              onPress={() => like(item.id)}
+              activeOpacity={0.8}
+            >
+              <Text style={[styles.voteBtnText, liked && styles.voteBtnTextActive]}>
+                {liked ? 'VOTED' : 'VOTE'}
+              </Text>
+            </TouchableOpacity>
           </View>
           <View style={styles.bar}>
             <TouchableOpacity style={styles.act} onPress={() => like(item.id)} activeOpacity={0.7}>
@@ -304,6 +313,32 @@ const styles = StyleSheet.create({
   cap: {
     color: '#fff', ...typography.weights.regular, fontSize: typography.sizes.sm, lineHeight: 20,
     textShadowColor: 'rgba(0,0,0,0.9)', textShadowOffset: { width: 0, height: 1 }, textShadowRadius: 6,
+  },
+  voteBtn: {
+    marginTop: spacing.md,
+    backgroundColor: colors.primary.base,
+    paddingVertical: 10,
+    paddingHorizontal: 28,
+    borderRadius: 24,
+    alignSelf: 'flex-start',
+    shadowColor: colors.primary.base,
+    shadowOffset: { width: 0, height: 4 },
+    shadowOpacity: 0.4,
+    shadowRadius: 8,
+    elevation: 5,
+  },
+  voteBtnActive: {
+    backgroundColor: '#fff',
+    shadowColor: '#fff',
+  },
+  voteBtnText: {
+    color: '#000',
+    ...typography.weights.bold,
+    fontSize: 16,
+    letterSpacing: 0.5,
+  },
+  voteBtnTextActive: {
+    color: colors.primary.base,
   },
   bar: { alignItems: 'center', gap: 22, paddingBottom: 8 },
   act: { alignItems: 'center', gap: 4 },
