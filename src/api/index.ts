@@ -128,7 +128,12 @@ export const challengesApi = {
           runnerUp1Id: null,
           runnerUp2Id: null,
         }));
-        return { data: challenges };
+        
+        // Ensure at least 1 challenge per category by adding mock challenges for missing categories
+        const coveredCategories = new Set(challenges.map(c => c.category));
+        const missingMockChallenges = MOCK_CHALLENGES.filter(c => !coveredCategories.has(c.category));
+        
+        return { data: [...challenges, ...missingMockChallenges] };
       }
     } catch (error) {
       // ignore
