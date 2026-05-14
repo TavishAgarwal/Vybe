@@ -94,19 +94,21 @@ export const useUpload = () => {
       const { mimeType, extension } = await validateVideo(options);
       safeSet(setUploadProgress, 0.1);
 
-      // Convert local file URI to Blob for Supabase upload
-      const response = await fetch(options.videoUri);
-      const blob = await response.blob();
+      // Use FormData which is the most reliable way to upload files in React Native
+      const formData = new FormData();
+      formData.append('file', {
+        uri: options.videoUri,
+        name: `video.${extension}`,
+        type: mimeType,
+      } as any);
+
       safeSet(setUploadProgress, 0.3);
 
       // Upload to Supabase Storage
       const fileName = `${user.id}/${Date.now()}.${extension}`;
       const { error: storageError } = await supabase.storage
         .from('videos')
-        .upload(fileName, blob, {
-          contentType: mimeType,
-          upsert: false,
-        });
+        .upload(fileName, formData);
 
       if (storageError) {
         throw new Error(`Storage upload failed: ${storageError.message}`);
@@ -149,7 +151,7 @@ export const useUpload = () => {
       }).catch(() => undefined);
       safeSet(setError, uploadError);
       safeSet(setIsUploading, false);
-      return null;
+      throw uploadError;
     }
   };
 
